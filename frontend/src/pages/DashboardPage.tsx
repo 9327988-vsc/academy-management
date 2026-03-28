@@ -77,9 +77,9 @@ export default function DashboardPage() {
           {stats.todayClassList.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">오늘은 수업이 없습니다.</p>
-              <Link to="/classes">
-                <Button variant="outline">수업 관리로 이동</Button>
-              </Link>
+              <Button asChild variant="outline">
+                <Link to="/classes">수업 관리로 이동</Link>
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -89,9 +89,9 @@ export default function DashboardPage() {
                     <p className="font-medium">{cls.name}</p>
                     <p className="text-sm text-muted-foreground">{cls.startTime} - {cls.endTime}</p>
                   </div>
-                  <Link to={`/classes/${cls.id}/attendance`}>
-                    <Button size="sm">출석 체크</Button>
-                  </Link>
+                  <Button asChild size="sm">
+                    <Link to={`/classes/${cls.id}/attendance`}>출석 체크</Link>
+                  </Button>
                 </div>
               ))}
             </div>

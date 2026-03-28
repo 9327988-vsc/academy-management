@@ -76,7 +76,7 @@ export default function StudentManagePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link to="/classes"><Button variant="ghost" size="sm">&larr; 뒤로</Button></Link>
+          <Button asChild variant="ghost" size="sm"><Link to="/classes">&larr; 뒤로</Link></Button>
           <h1 className="text-2xl font-bold">학생 관리</h1>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>

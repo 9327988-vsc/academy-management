@@ -112,7 +112,7 @@ export default function AttendancePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/classes"><Button variant="ghost" size="sm">&larr; 뒤로</Button></Link>
+        <Button asChild variant="ghost" size="sm"><Link to="/classes">&larr; 뒤로</Link></Button>
         <h1 className="text-2xl font-bold">{classInfo.name} - 출석부</h1>
       </div>
 
@@ -132,7 +132,7 @@ export default function AttendancePage() {
           {students.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">등록된 학생이 없습니다.</p>
-              <Link to={`/classes/${classId}/students`}><Button variant="outline">학생 관리로 이동</Button></Link>
+              <Button asChild variant="outline"><Link to={`/classes/${classId}/students`}>학생 관리로 이동</Link></Button>
             </div>
           ) : (
             students.map((s, i) => (
@@ -210,7 +210,7 @@ export default function AttendancePage() {
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Link to="/classes"><Button variant="outline">취소</Button></Link>
+              <Button asChild variant="outline"><Link to="/classes">취소</Link></Button>
               <Button onClick={handleSubmit} disabled={submitting}>
                 {submitting ? '처리 중...' : '알림 미리보기'}
               </Button>

@@ -51,7 +51,7 @@ export default function ClassDetailPage() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">수업을 찾을 수 없습니다.</p>
-        <Link to="/classes"><Button variant="outline" className="mt-4">수업 목록으로</Button></Link>
+        <Button asChild variant="outline" className="mt-4"><Link to="/classes">수업 목록으로</Link></Button>
       </div>
     );
   }
@@ -59,7 +59,7 @@ export default function ClassDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/classes"><Button variant="ghost" size="sm">&larr; 뒤로</Button></Link>
+        <Button asChild variant="ghost" size="sm"><Link to="/classes">&larr; 뒤로</Link></Button>
         <h1 className="text-2xl font-bold">{classInfo.name}</h1>
       </div>
 
@@ -73,8 +73,8 @@ export default function ClassDetailPage() {
             <div><span className="text-muted-foreground">교실:</span> {classInfo.room || '-'}</div>
           </div>
           <div className="flex gap-2 mt-4">
-            <Link to={`/classes/${classId}/attendance`}><Button size="sm">출석 체크</Button></Link>
-            <Link to={`/classes/${classId}/students`}><Button size="sm" variant="outline">학생 관리</Button></Link>
+            <Button asChild size="sm"><Link to={`/classes/${classId}/attendance`}>출석 체크</Link></Button>
+            <Button asChild size="sm" variant="outline"><Link to={`/classes/${classId}/students`}>학생 관리</Link></Button>
           </div>
         </CardContent>
       </Card>
@@ -90,7 +90,7 @@ export default function ClassDetailPage() {
           {classInfo.students.length === 0 ? (
             <Card><CardContent className="text-center py-8">
               <p className="text-muted-foreground mb-4">등록된 학생이 없습니다.</p>
-              <Link to={`/classes/${classId}/students`}><Button variant="outline">학생 추가</Button></Link>
+              <Button asChild variant="outline"><Link to={`/classes/${classId}/students`}>학생 추가</Link></Button>
             </CardContent></Card>
           ) : (
             classInfo.students.map((s, i) => (

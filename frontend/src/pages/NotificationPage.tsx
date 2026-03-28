@@ -64,7 +64,7 @@ export default function NotificationPage() {
               <span className="text-red-600">실패: <strong>{sendResult.failed}건</strong></span>
             </div>
             <div className="pt-4">
-              <Link to="/dashboard"><Button>대시보드로 돌아가기</Button></Link>
+              <Button asChild><Link to="/dashboard">대시보드로 돌아가기</Link></Button>
             </div>
           </CardContent>
         </Card>
@@ -75,7 +75,7 @@ export default function NotificationPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to={`/classes/${classId}/attendance`}><Button variant="ghost" size="sm">&larr; 뒤로</Button></Link>
+        <Button asChild variant="ghost" size="sm"><Link to={`/classes/${classId}/attendance`}>&larr; 뒤로</Link></Button>
         <h1 className="text-2xl font-bold">알림 미리보기</h1>
       </div>
 
@@ -143,7 +143,7 @@ export default function NotificationPage() {
               발송 대상: 총 <strong>{totalRecipients}건</strong> (SMS 문자 메시지)
             </p>
             <div className="flex gap-4">
-              <Link to={`/classes/${classId}/attendance`}><Button variant="outline">취소</Button></Link>
+              <Button asChild variant="outline"><Link to={`/classes/${classId}/attendance`}>취소</Link></Button>
               <Button onClick={handleSend} disabled={sending}>
                 {sending ? '발송 중...' : '알림 발송하기'}
               </Button>

@@ -156,12 +156,12 @@ export default function ClassListPage() {
                   </p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  <Link to={`/classes/${cls.id}/attendance`}>
-                    <Button size="sm" variant="default">출석부</Button>
-                  </Link>
-                  <Link to={`/classes/${cls.id}/students`}>
-                    <Button size="sm" variant="outline">학생 관리</Button>
-                  </Link>
+                  <Button asChild size="sm" variant="default">
+                    <Link to={`/classes/${cls.id}/attendance`}>출석부</Link>
+                  </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to={`/classes/${cls.id}/students`}>학생 관리</Link>
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button size="sm" variant="outline" className="text-destructive">삭제</Button>
