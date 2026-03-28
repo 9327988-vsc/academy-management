@@ -20,6 +20,21 @@ async function main() {
   });
   console.log(`Teacher created: ${teacher.name} (${teacher.email})`);
 
+  // 1-2. 관리자(원장) 계정
+  const adminPassword = await bcrypt.hash('admin1234', 10);
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@academy.com' },
+    update: {},
+    create: {
+      email: 'admin@academy.com',
+      password: adminPassword,
+      name: '관리자',
+      phone: '010-0000-0000',
+      role: 'principal',
+    },
+  });
+  console.log(`Admin created: ${admin.name} (${admin.email})`);
+
   // 2. 수업
   const mathClass = await prisma.class.create({
     data: {
