@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String
+  role      Role     @default(teacher)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  classes  Class[]
+  students Student[]
+
+  @@index([email])
+  @@map("users")
+}
+
+enum Role {
+  teacher
+}
+
+model Class {
+  id          String   @id @default(uuid())
+  teacherId   String   @map("teacher_id")
+  name        String
+  subject     String
+  dayOfWeek   String   @map("day_of_week")
+  startTime   String   @map("start_time")
+  endTime     String   @map("end_time")
+  room        String?
+  maxStudents Int      @default(15) @map("max_students")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  teacher  User           @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  students ClassStudent[]
+  sessions ClassSession[]
+
+  @@index([teacherId])
+  @@map("classes")
+}
+
+model Student {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String?
+  grade     String?
+  school    String?
+  teacherId String   @map("teacher_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  teacher    User           @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  parents    Parent[]
+  classes    ClassStudent[]
+  attendance Attendance[]
+
+  @@index([teacherId])
+  @@map("students")
+}
+
+model Parent {
+  id           String   @id @default(uuid())
+  studentId    String   @map("student_id")
+  name         String
+  phone        String
+  relationship String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("parents")
+}
+
+model ClassStudent {
+  id         String   @id @default(uuid())
+  classId    String   @map("class_id")
+  studentId  String   @map("student_id")
+  enrolledAt DateTime @default(now()) @map("enrolled_at")
+
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, studentId], name: "unique_enrollment")
+  @@index([classId])
+  @@index([studentId])
+  @@map("class_students")
+}
+
+model ClassSession {
+  id               String    @id @default(uuid())
+  classId          String    @map("class_id")
+  sessionDate      DateTime  @map("session_date") @db.Date
+  startTime        String    @map("start_time")
+  endTime          String    @map("end_time")
+  topic            String?
+  textbook         String?
+  pages            String?
+  keyConcepts      String?   @map("key_concepts") @db.Text
+  homework         String?   @db.Text
+  homeworkDueDate  DateTime? @map("homework_due_date") @db.Date
+  nextTopic        String?   @map("next_topic")
+  specialNotes     String?   @map("special_notes") @db.Text
+  notificationSent Boolean   @default(false) @map("notification_sent")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  class         Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attendance    Attendance[]
+  notifications Notification[]
+
+  @@index([classId, sessionDate])
+  @@index([notificationSent])
+  @@map("class_sessions")
+}
+
+model Attendance {
+  id        String           @id @default(uuid())
+  sessionId String           @map("session_id")
+  studentId String           @map("student_id")
+  status    AttendanceStatus
+  checkTime DateTime         @default(now()) @map("check_time")
+  notes     String?          @db.Text
+
+  session ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, studentId], name: "unique_attendance")
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([status])
+  @@map("attendance")
+}
+
+enum AttendanceStatus {
+  present
+  absent
+  late
+}
+
+model Notification {
+  id             String             @id @default(uuid())
+  sessionId      String             @map("session_id")
+  recipientPhone String             @map("recipient_phone")
+  recipientName  String             @map("recipient_name")
+  recipientType  RecipientType      @map("recipient_type")
+  content        String             @db.Text
+  status         NotificationStatus @default(pending)
+  sentAt         DateTime?          @map("sent_at")
+  errorMessage   String?            @map("error_message") @db.Text
+  createdAt      DateTime           @default(now()) @map("created_at")
+
+  session ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([status])
+  @@index([sentAt])
+  @@map("notifications")
+}
+
+enum RecipientType {
+  student
+  parent
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  failed
+}

@@ -1,0 +1,1696 @@
+# 학원 스마트 관리 시스템 PRD (Product Requirements Document)
+
+**버전:** 1.0 (개발 시작 확정)  
+**작성일:** 2026년 3월 26일  
+**프로젝트명:** Academy Smart Management System (ASMS)  
+**개발 방식:** 애자일 (Agile) - 점진적 보완
+
+---
+
+## ⚠️ 개발 진행 방침
+
+**현재 상태:**
+- ✅ 핵심 기능 정의 완료
+- ✅ 기술 스택 확정
+- ✅ DB 스키마 설계 완료
+- ✅ UI/UX 기본 방향 설정
+
+**향후 보완 예정 (개발 중):**
+- 결제 시스템 상세 설계
+- 예외 상황 처리 로직
+- 권한 세분화 (원장/강사/행정)
+- 성능 최적화 전략
+- 상세 에러 처리 가이드
+
+**개발 우선순위:** Phase 1 → Phase 2 → Phase 3 순차 진행  
+**보완 방식:** 각 Phase 완료 후 피드백 반영하여 문서 업데이트
+
+---
+
+---
+
+## 📌 1. 프로젝트 개요
+
+### 1.1 목적
+학원 선생님의 수업 후 반복적인 알림 발송 업무를 자동화하고, 학생-학부모-선생님 간 소통을 효율화하며, AI 기반 개인 맞춤형 학습 지원을 제공하는 통합 학원 관리 시스템
+
+### 1.2 핵심 가치 제안
+- **선생님:** 수업 후 알림 발송 시간 90% 절감 (20분 → 2분)
+- **학부모:** 실시간 자녀 학습 현황 파악 및 투명한 소통
+- **학생:** 24시간 AI 튜터를 통한 자기주도 학습 지원
+- **학원:** 체계적인 출결/보강 관리로 행정 효율 증대
+
+### 1.3 타겟 사용자
+- **주 사용자:** 중소형 학원 강사 (학생 수 10~100명 규모)
+- **부 사용자:** 초등 고학년 ~ 고등학생, 학부모
+- **지역:** 대한민국 전역 (한국어 우선 지원)
+
+---
+
+## 🎯 2. 핵심 기능 명세
+
+### 2.1 수업 알림 자동화 시스템
+
+#### 2.1.1 수업 종료 처리 인터페이스
+**화면 구성:**
+```
+┌─────────────────────────────────────┐
+│  📚 오늘 수업 종료                    │
+├─────────────────────────────────────┤
+│  수업: 수학 중3 심화반               │
+│  날짜: 2026.03.26 (화) 17:00-19:00  │
+│                                     │
+│  [출석 체크] (8/10명)               │
+│  ✓ 김철수  ✓ 이영희  ✓ 박민수       │
+│  ✓ 최지원  ✓ 강하늘  ✓ 정수아       │
+│  ✓ 조민지  ✓ 한승우                 │
+│  ✗ 신동엽 (결석)  ✗ 오나라 (결석)   │
+│                                     │
+│  [오늘 진도]                        │
+│  📖 이차방정식 활용 (실생활 문제)    │
+│  - 교재: 최상위 수학 p.124-p.131    │
+│  - 핵심개념: 속력/거리 문제 풀이     │
+│                                     │
+│  [다음 수업 예고]                    │
+│  📅 2026.03.28 (목) 17:00           │
+│  📖 이차함수 그래프 (1단원 마무리)   │
+│                                     │
+│  [숙제]                             │
+│  📝 최상위 수학 p.132-135 (8문제)   │
+│  📅 제출기한: 2026.03.28 수업 전    │
+│                                     │
+│  [특이사항] (선택)                   │
+│  💬 [텍스트 입력 영역]              │
+│                                     │
+│  [ 알림 발송하기 ]                   │
+└─────────────────────────────────────┘
+```
+
+**기능 명세:**
+- **출석 체크**
+  - 학생 명단 자동 로드 (수업 등록 정보 기반)
+  - 터치/클릭으로 출석(✓) / 결석(✗) / 지각(△) 표시
+  - 결석 학생 자동 감지 및 결석 알림 플래그 설정
+
+- **진도 입력**
+  - 템플릿 기반 빠른 입력 (교재명 + 페이지 범위)
+  - 이전 수업 내용 자동 불러오기
+  - 자주 사용하는 문구 즐겨찾기
+
+- **알림 미리보기**
+  - 발송 전 알림 메시지 최종 확인
+  - 학생별/학부모별 개인화된 메시지 생성
+
+#### 2.1.2 알림 메시지 포맷
+
+**출석 학생용 메시지:**
+```
+[○○학원] 김철수 학생 수업 알림
+
+📚 오늘 수업 (3/26 화)
+- 과목: 수학 중3 심화반
+- 진도: 이차방정식 활용 (최상위 p.124-131)
+- 핵심: 속력/거리 문제 풀이
+
+📝 숙제
+- 최상위 수학 p.132-135 (8문제)
+- 제출: 3/28(목) 수업 전
+
+📅 다음 수업
+- 3/28(목) 17:00
+- 예정: 이차함수 그래프
+
+💬 선생님 코멘트
+- 오늘 수업 집중도 우수! 복습 잊지 마세요.
+
+[숙제 확인] [질문하기]
+```
+
+**결석 학생용 메시지:**
+```
+[○○학원] 신동엽 학생 결석 알림
+
+⚠️ 오늘(3/26 화) 수업에 결석하셨습니다.
+
+📚 오늘 진도
+- 이차방정식 활용 (최상위 p.124-131)
+- 속력/거리 문제 풀이
+
+📝 과제
+- 최상위 수학 p.132-135 (8문제)
+- 제출: 3/28(목) 수업 전
+
+🔄 보강 신청
+다음 수업 전까지 보강을 권장합니다.
+
+[보강 일정 잡기] [진도 자료 받기]
+```
+
+**학부모용 통합 알림:**
+```
+[○○학원] 김철수 학부모님께
+
+안녕하세요. 오늘 수업 결과를 알려드립니다.
+
+✅ 출석: 정상 출석
+📚 진도: 이차방정식 활용 (p.124-131)
+📝 숙제: 최상위 수학 p.132-135 (8문제)
+📅 다음 수업: 3/28(목) 17:00
+
+💬 학습 소견
+오늘 수업 참여도가 높았으며, 어려운 문제도 스스로 해결하려는 모습이 좋았습니다.
+
+[자세히 보기] [선생님께 문의]
+```
+
+#### 2.1.3 알림 발송 채널
+
+**우선순위별 발송:**
+1. **카카오 알림톡** (1순위)
+   - 학원 공식 계정 인증 필요
+   - 템플릿 사전 등록 (최초 1회)
+   - 발송 성공률 98%+
+   - 비용: 건당 약 8-10원
+
+2. **SMS 문자** (2순위, 알림톡 실패 시)
+   - NHN Cloud SMS API 활용
+   - LMS(장문) 지원 (2,000자)
+   - 발송 성공률 99%+
+   - 비용: 건당 약 20원 (LMS)
+
+3. **앱 푸시 알림** (3순위, 앱 설치 시)
+   - Firebase Cloud Messaging
+   - 즉시 알림 + 알림 센터 보관
+   - 무료
+
+**발송 로직:**
+```
+IF 카카오톡 연동 O → 알림톡 발송
+  └─ 실패 시 → SMS 발송
+ELSE → SMS 직접 발송
+
+AND 앱 설치 O → 푸시 알림 병행 발송
+```
+
+---
+
+### 2.2 보강 관리 시스템
+
+#### 2.2.1 보강 신청 프로세스
+
+**Step 1: 보강 사유 확인 (자동)**
+```
+결석 발생 시 자동으로 보강 대상 등록
+- 출결 체크에서 '결석' 표시 즉시
+- 보강 대기 목록에 자동 추가
+- 학생/학부모에게 보강 신청 링크 발송
+```
+
+**Step 2: 학생/학부모 일정 선택**
+```
+┌─────────────────────────────────────┐
+│  🔄 보강 일정 선택                   │
+├─────────────────────────────────────┤
+│  학생: 신동엽                        │
+│  결석일: 2026.03.26 (화) 수학 수업   │
+│                                     │
+│  📅 가능한 보강 일정                 │
+│                                     │
+│  [ ] 3/27 (수) 15:00-16:00         │
+│      선생님: 김OO / 남은자리: 1명    │
+│                                     │
+│  [ ] 3/28 (목) 13:00-14:00         │
+│      선생님: 김OO / 남은자리: 2명    │
+│                                     │
+│  [ ] 3/29 (금) 14:00-15:00         │
+│      선생님: 이OO / 남은자리: 1명    │
+│                                     │
+│  [ ] 3/30 (토) 10:00-11:00         │
+│      선생님: 김OO / 남은자리: 3명    │
+│                                     │
+│  💬 요청사항 (선택)                  │
+│  [텍스트 입력]                       │
+│                                     │
+│  [ 보강 신청하기 ]                   │
+└─────────────────────────────────────┘
+```
+
+**Step 3: 선생님 승인**
+```
+┌─────────────────────────────────────┐
+│  📋 보강 신청 관리                   │
+├─────────────────────────────────────┤
+│  🔔 대기 중인 신청 (3건)             │
+│                                     │
+│  1. 신동엽 → 3/28(목) 13:00        │
+│     [승인] [거절] [일정변경 제안]   │
+│                                     │
+│  2. 오나라 → 3/30(토) 10:00        │
+│     [승인] [거절] [일정변경 제안]   │
+│                                     │
+│  3. 박서준 → 3/29(금) 14:00        │
+│     [승인] [거절] [일정변경 제안]   │
+│                                     │
+│  ✅ 확정된 보강 (5건)                │
+│  📅 이번 주 보강 캘린더              │
+└─────────────────────────────────────┘
+```
+
+#### 2.2.2 보강 캘린더 시스템
+
+**선생님용 관리 캘린더:**
+```
+┌──────────────────────────────────────────┐
+│  📅 2026년 3월                            │
+├──────────────────────────────────────────┤
+│   월    화    수    목    금    토   일   │
+│  24   25   26   27   28   29   30      │
+│       📚   📚   🔄   📚   🔄   🔄      │
+│                  보강  보강  보강        │
+│                                          │
+│  🔄 보강 가능 시간 등록하기               │
+│  ┌────────────────────────────────────┐ │
+│  │ 날짜: [2026-03-30]                 │ │
+│  │ 시작: [10:00] ~ 종료: [11:00]     │ │
+│  │ 정원: [3]명                        │ │
+│  │ [ 등록하기 ]                       │ │
+│  └────────────────────────────────────┘ │
+└──────────────────────────────────────────┘
+```
+
+**기능 명세:**
+- 반복 일정 설정 (매주 수요일 15:00-16:00)
+- 선생님별 보강 가능 시간 설정
+- 정원 관리 (동시 보강 인원 제한)
+- 구글 캘린더 동기화 (선택)
+
+#### 2.2.3 알림 자동화
+
+**보강 확정 시:**
+- 학생/학부모: 보강 확정 알림 (일시/장소)
+- 선생님: 보강 스케줄 추가 알림
+- D-1: 보강 리마인더 알림 (전날 19:00)
+
+**보강 당일:**
+- 출석 체크 간소화 (보강 전용 체크리스트)
+- 보강 완료 후 간단 피드백 전송
+
+---
+
+### 2.3 AI 문제 풀이 도우미
+
+#### 2.3.1 문제 업로드 인터페이스
+
+**학생용 화면:**
+```
+┌─────────────────────────────────────┐
+│  🤖 AI 선생님에게 질문하기           │
+├─────────────────────────────────────┤
+│  📸 문제 사진 촬영/업로드             │
+│  ┌─────────────────────────────┐   │
+│  │                             │   │
+│  │      [📷 사진 촬영]          │   │
+│  │      [📁 파일 선택]          │   │
+│  │                             │   │
+│  └─────────────────────────────┘   │
+│                                     │
+│  ✏️ 어떤 부분이 어려운가요? (선택)    │
+│  [ ] 문제를 이해하기 어려워요         │
+│  [ ] 풀이 과정을 모르겠어요           │
+│  [ ] 답은 알지만 왜 그런지 궁금해요   │
+│  [ ] 다른 방법으로도 풀고 싶어요      │
+│                                     │
+│  💬 추가 질문 (선택)                 │
+│  [텍스트 입력]                       │
+│                                     │
+│  [ AI 풀이 요청하기 ]                │
+└─────────────────────────────────────┘
+```
+
+#### 2.3.2 AI 분석 및 응답 프로세스
+
+**Step 1: 이미지 전처리**
+```javascript
+// 이미지 업로드 → 전처리
+1. 이미지 회전 보정 (orientation)
+2. 해상도 최적화 (max 4096px)
+3. 파일 크기 압축 (max 10MB)
+4. Base64 인코딩
+```
+
+**Step 2: Claude API Vision 분석**
+```javascript
+// Claude API 호출
+{
+  model: "claude-sonnet-4-20250514",
+  max_tokens: 4096,
+  messages: [
+    {
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: "image/jpeg",
+            data: base64ImageData
+          }
+        },
+        {
+          type: "text",
+          text: `
+당신은 친절한 수학 선생님입니다. 학생이 올린 문제를 분석하고 단계별로 설명해주세요.
+
+학생 정보:
+- 학년: ${student.grade}
+- 과목: ${student.subject}
+- 어려움: ${student.difficulty}
+
+요청사항:
+1. 문제 내용을 정확히 파악하여 텍스트로 추출
+2. 문제 유형 분류 (예: 이차방정식, 도형, 확률 등)
+3. 단계별 풀이 제공 (학생 수준에 맞춰)
+4. 핵심 개념 설명
+5. 주의할 점 안내
+
+응답 형식:
+{
+  "problem_text": "문제 내용",
+  "problem_type": "문제 유형",
+  "difficulty": "난이도 (하/중/상)",
+  "solution_steps": [
+    {"step": 1, "title": "단계 제목", "content": "설명"},
+    ...
+  ],
+  "key_concepts": ["개념1", "개념2"],
+  "tips": "주의사항 및 팁",
+  "answer": "최종 답"
+}
+          `
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Step 3: 응답 포맷팅**
+```
+┌─────────────────────────────────────┐
+│  🎯 AI 선생님의 풀이                 │
+├─────────────────────────────────────┤
+│  📝 문제                             │
+│  다음 이차방정식을 풀어라.            │
+│  x² - 5x + 6 = 0                    │
+│                                     │
+│  📊 문제 유형: 이차방정식 (인수분해)  │
+│  📈 난이도: 중                       │
+│                                     │
+│  ✨ 단계별 풀이                      │
+│                                     │
+│  1️⃣ 인수분해 형태 확인               │
+│  x² - 5x + 6 을 (x-a)(x-b) 형태로   │
+│  만들 수 있는지 확인합니다.           │
+│                                     │
+│  2️⃣ 두 수 찾기                      │
+│  곱해서 6, 더해서 -5가 되는          │
+│  두 수를 찾습니다 → -2, -3          │
+│                                     │
+│  3️⃣ 인수분해 실행                    │
+│  (x - 2)(x - 3) = 0                 │
+│                                     │
+│  4️⃣ 해 구하기                        │
+│  x - 2 = 0 또는 x - 3 = 0          │
+│  ∴ x = 2 또는 x = 3                │
+│                                     │
+│  💡 핵심 개념                        │
+│  • 인수분해를 이용한 이차방정식 풀이  │
+│  • 곱셈공식의 역순 활용               │
+│                                     │
+│  ⚠️ 주의할 점                        │
+│  • 두 수의 곱과 합을 동시에 고려     │
+│  • 해가 2개 나올 수 있음을 기억      │
+│                                     │
+│  ✅ 답: x = 2 또는 x = 3            │
+│                                     │
+│  [ 이해했어요 ] [ 더 자세히 ]        │
+│  [ 비슷한 문제 풀기 ]                │
+└─────────────────────────────────────┘
+```
+
+#### 2.3.3 유사 문제 생성
+
+**"비슷한 문제 풀기" 클릭 시:**
+```javascript
+// Claude API 재호출 - 유사 문제 생성
+{
+  model: "claude-sonnet-4-20250514",
+  messages: [
+    {
+      role: "user",
+      content: `
+원본 문제: ${originalProblem}
+문제 유형: ${problemType}
+학생 수준: ${studentLevel}
+
+위 문제와 동일한 유형이지만 숫자나 상황을 바꾼 
+새로운 문제 3개를 생성해주세요.
+
+난이도 구성:
+1. 원본보다 약간 쉬운 문제 (연습용)
+2. 원본과 비슷한 난이도 (복습용)
+3. 원본보다 약간 어려운 문제 (도전용)
+
+각 문제에는 정답과 간단한 힌트를 포함해주세요.
+
+응답 형식:
+{
+  "problems": [
+    {
+      "level": "easy/medium/hard",
+      "question": "문제 내용",
+      "hint": "힌트",
+      "answer": "정답"
+    }
+  ]
+}
+      `
+    }
+  ]
+}
+```
+
+**유사 문제 화면:**
+```
+┌─────────────────────────────────────┐
+│  📚 비슷한 문제로 연습하기            │
+├─────────────────────────────────────┤
+│  1️⃣ 연습 문제 (쉬움) ⭐              │
+│  x² - 7x + 12 = 0                   │
+│  [문제 풀기] [힌트 보기]             │
+│                                     │
+│  2️⃣ 복습 문제 (보통) ⭐⭐            │
+│  x² + 2x - 15 = 0                   │
+│  [문제 풀기] [힌트 보기]             │
+│                                     │
+│  3️⃣ 도전 문제 (어려움) ⭐⭐⭐        │
+│  2x² - 11x + 12 = 0                 │
+│  [문제 풀기] [힌트 보기]             │
+│                                     │
+│  [ 더 많은 문제 생성 ]               │
+└─────────────────────────────────────┘
+```
+
+#### 2.3.4 학습 이력 추적
+
+**학생별 질문 히스토리:**
+```javascript
+// 데이터베이스 저장 구조
+{
+  student_id: "S001",
+  question_history: [
+    {
+      timestamp: "2026-03-26T14:30:00",
+      subject: "수학",
+      topic: "이차방정식",
+      problem_type: "인수분해",
+      difficulty: "medium",
+      image_url: "s3://...",
+      solution_provided: true,
+      additional_problems_count: 3,
+      understanding_level: "understood" // understood / needs_review / struggled
+    }
+  ],
+  weak_topics: ["이차함수 그래프", "확률"],
+  strong_topics: ["인수분해", "연립방정식"]
+}
+```
+
+**선생님용 학습 분석 대시보드:**
+```
+┌─────────────────────────────────────┐
+│  📊 학생별 AI 활용 현황              │
+├─────────────────────────────────────┤
+│  신동엽 학생                         │
+│  • 이번 주 질문: 12건                │
+│  • 주요 질문 분야: 이차방정식 (60%)  │
+│  • 취약 개념: 이차함수 그래프         │
+│  • AI 풀이 이해도: 75%               │
+│                                     │
+│  💡 추천 조치                        │
+│  - 이차함수 그래프 보충 필요          │
+│  - 개별 지도 권장                    │
+│                                     │
+│  [상세 보기] [개별 상담 예약]        │
+└─────────────────────────────────────┘
+```
+
+---
+
+## 🏗️ 3. 시스템 아키텍처
+
+### 3.1 기술 스택
+
+#### Frontend
+```
+React 18.3+
+├─ Vite 5.0 (빌드 도구)
+├─ React Router 6 (라우팅)
+├─ Tailwind CSS 3.4 (스타일링)
+├─ Framer Motion (애니메이션)
+├─ Axios (HTTP 클라이언트)
+├─ Zustand (전역 상태 관리)
+├─ React Query (서버 상태 관리)
+└─ date-fns (날짜 처리)
+```
+
+#### Backend
+```
+Node.js 20 LTS
+├─ Express.js 4.19 (웹 프레임워크)
+├─ Prisma 5.x (ORM)
+├─ MySQL 8.0 (데이터베이스)
+├─ JWT (인증)
+├─ bcrypt (비밀번호 암호화)
+├─ multer (파일 업로드)
+└─ node-cron (스케줄링)
+```
+
+#### External APIs
+```
+Anthropic Claude API
+├─ Claude Sonnet 4 (AI 풀이)
+└─ Vision API (이미지 분석)
+
+NHN Cloud SMS API (문자 발송)
+Kakao Business API (알림톡 발송)
+Firebase Cloud Messaging (푸시 알림)
+AWS S3 (이미지 스토리지)
+```
+
+### 3.2 데이터베이스 스키마
+
+```sql
+-- 사용자 테이블
+CREATE TABLE users (
+    id VARCHAR(36) PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    role ENUM('teacher', 'student', 'parent') NOT NULL,
+    phone VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_email (email),
+    INDEX idx_role (role)
+);
+
+-- 학원 정보
+CREATE TABLE academies (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    address VARCHAR(200),
+    phone VARCHAR(20),
+    business_number VARCHAR(20),
+    owner_id VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_id) REFERENCES users(id)
+);
+
+-- 강사 정보
+CREATE TABLE teachers (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) UNIQUE NOT NULL,
+    academy_id VARCHAR(36) NOT NULL,
+    subjects JSON, -- ["수학", "영어", "과학"]
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (academy_id) REFERENCES academies(id)
+);
+
+-- 학생 정보
+CREATE TABLE students (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) UNIQUE NOT NULL,
+    academy_id VARCHAR(36) NOT NULL,
+    grade VARCHAR(20), -- "초6", "중3", "고1" 등
+    school_name VARCHAR(100),
+    parent_id VARCHAR(36),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (academy_id) REFERENCES academies(id),
+    FOREIGN KEY (parent_id) REFERENCES users(id)
+);
+
+-- 학부모-학생 연결 (한 학부모가 여러 자녀 가능)
+CREATE TABLE parent_student (
+    parent_id VARCHAR(36),
+    student_id VARCHAR(36),
+    relationship VARCHAR(20), -- "부", "모", "조부모" 등
+    PRIMARY KEY (parent_id, student_id),
+    FOREIGN KEY (parent_id) REFERENCES users(id),
+    FOREIGN KEY (student_id) REFERENCES students(id)
+);
+
+-- 수업 정보
+CREATE TABLE classes (
+    id VARCHAR(36) PRIMARY KEY,
+    academy_id VARCHAR(36) NOT NULL,
+    name VARCHAR(100) NOT NULL, -- "수학 중3 심화반"
+    subject VARCHAR(50) NOT NULL, -- "수학"
+    teacher_id VARCHAR(36) NOT NULL,
+    schedule JSON, -- [{"day": "월", "start": "17:00", "end": "19:00"}, ...]
+    room VARCHAR(50),
+    max_students INT DEFAULT 15,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (academy_id) REFERENCES academies(id),
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id),
+    INDEX idx_subject (subject)
+);
+
+-- 수강 정보 (학생-수업 연결)
+CREATE TABLE enrollments (
+    id VARCHAR(36) PRIMARY KEY,
+    student_id VARCHAR(36) NOT NULL,
+    class_id VARCHAR(36) NOT NULL,
+    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('active', 'inactive', 'graduated') DEFAULT 'active',
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    FOREIGN KEY (class_id) REFERENCES classes(id),
+    UNIQUE KEY unique_enrollment (student_id, class_id)
+);
+
+-- 수업 세션 (실제 진행된 수업 기록)
+CREATE TABLE class_sessions (
+    id VARCHAR(36) PRIMARY KEY,
+    class_id VARCHAR(36) NOT NULL,
+    session_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    topic VARCHAR(200), -- "이차방정식 활용"
+    textbook VARCHAR(100), -- "최상위 수학"
+    pages VARCHAR(50), -- "p.124-131"
+    key_concepts TEXT, -- "속력/거리 문제 풀이"
+    homework TEXT, -- "최상위 수학 p.132-135 (8문제)"
+    homework_due_date DATE,
+    next_topic VARCHAR(200), -- "이차함수 그래프"
+    special_notes TEXT,
+    notification_sent BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (class_id) REFERENCES classes(id),
+    INDEX idx_session_date (session_date),
+    INDEX idx_notification_sent (notification_sent)
+);
+
+-- 출결 기록
+CREATE TABLE attendance (
+    id VARCHAR(36) PRIMARY KEY,
+    session_id VARCHAR(36) NOT NULL,
+    student_id VARCHAR(36) NOT NULL,
+    status ENUM('present', 'absent', 'late', 'excused') NOT NULL,
+    check_time TIMESTAMP,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES class_sessions(id),
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    INDEX idx_status (status),
+    UNIQUE KEY unique_attendance (session_id, student_id)
+);
+
+-- 보강 슬롯 (선생님이 등록한 보강 가능 시간)
+CREATE TABLE makeup_slots (
+    id VARCHAR(36) PRIMARY KEY,
+    teacher_id VARCHAR(36) NOT NULL,
+    class_id VARCHAR(36), -- NULL이면 모든 수업 가능
+    slot_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    max_students INT DEFAULT 3,
+    current_count INT DEFAULT 0,
+    status ENUM('available', 'full', 'closed') DEFAULT 'available',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id),
+    FOREIGN KEY (class_id) REFERENCES classes(id),
+    INDEX idx_slot_date (slot_date),
+    INDEX idx_status (status)
+);
+
+-- 보강 신청
+CREATE TABLE makeup_requests (
+    id VARCHAR(36) PRIMARY KEY,
+    student_id VARCHAR(36) NOT NULL,
+    original_session_id VARCHAR(36) NOT NULL, -- 결석한 원래 수업
+    slot_id VARCHAR(36), -- 신청한 보강 슬롯
+    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending', 'approved', 'rejected', 'completed', 'cancelled') DEFAULT 'pending',
+    student_note TEXT,
+    teacher_note TEXT,
+    approved_at TIMESTAMP,
+    completed_at TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    FOREIGN KEY (original_session_id) REFERENCES class_sessions(id),
+    FOREIGN KEY (slot_id) REFERENCES makeup_slots(id),
+    INDEX idx_status (status)
+);
+
+-- 알림 발송 로그
+CREATE TABLE notifications (
+    id VARCHAR(36) PRIMARY KEY,
+    recipient_id VARCHAR(36) NOT NULL, -- users.id
+    recipient_type ENUM('student', 'parent') NOT NULL,
+    channel ENUM('kakao', 'sms', 'push', 'email') NOT NULL,
+    type ENUM('session_summary', 'absent_notice', 'makeup_reminder', 'general') NOT NULL,
+    title VARCHAR(200),
+    content TEXT NOT NULL,
+    related_session_id VARCHAR(36),
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    delivery_status ENUM('pending', 'sent', 'failed', 'read') DEFAULT 'pending',
+    error_message TEXT,
+    FOREIGN KEY (recipient_id) REFERENCES users(id),
+    FOREIGN KEY (related_session_id) REFERENCES class_sessions(id),
+    INDEX idx_sent_at (sent_at),
+    INDEX idx_delivery_status (delivery_status)
+);
+
+-- AI 질문 기록
+CREATE TABLE ai_questions (
+    id VARCHAR(36) PRIMARY KEY,
+    student_id VARCHAR(36) NOT NULL,
+    subject VARCHAR(50) NOT NULL,
+    topic VARCHAR(100),
+    problem_type VARCHAR(100),
+    difficulty ENUM('easy', 'medium', 'hard'),
+    image_url VARCHAR(500),
+    problem_text TEXT,
+    student_query TEXT,
+    ai_response JSON, -- 전체 AI 응답 저장
+    solution_steps JSON,
+    similar_problems JSON,
+    understanding_level ENUM('understood', 'needs_review', 'struggled'),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    INDEX idx_subject (subject),
+    INDEX idx_topic (topic),
+    INDEX idx_created_at (created_at)
+);
+
+-- AI 학습 분석 (주간 집계)
+CREATE TABLE ai_analytics (
+    id VARCHAR(36) PRIMARY KEY,
+    student_id VARCHAR(36) NOT NULL,
+    week_start_date DATE NOT NULL,
+    total_questions INT DEFAULT 0,
+    subjects JSON, -- {"수학": 10, "영어": 5}
+    weak_topics JSON, -- ["이차함수", "확률"]
+    strong_topics JSON, -- ["인수분해", "연립방정식"]
+    understanding_rate DECIMAL(5,2), -- 0-100%
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id),
+    UNIQUE KEY unique_week_analysis (student_id, week_start_date)
+);
+```
+
+### 3.3 API 엔드포인트 설계
+
+#### 인증 (Authentication)
+```
+POST   /api/auth/register          회원가입
+POST   /api/auth/login             로그인
+POST   /api/auth/logout            로그아웃
+POST   /api/auth/refresh-token     토큰 갱신
+POST   /api/auth/forgot-password   비밀번호 찾기
+POST   /api/auth/reset-password    비밀번호 재설정
+```
+
+#### 사용자 관리 (Users)
+```
+GET    /api/users/me               내 정보 조회
+PATCH  /api/users/me               내 정보 수정
+GET    /api/users/:id              특정 사용자 조회
+DELETE /api/users/:id              사용자 삭제
+```
+
+#### 학원 관리 (Academies)
+```
+POST   /api/academies              학원 등록
+GET    /api/academies/:id          학원 정보 조회
+PATCH  /api/academies/:id          학원 정보 수정
+GET    /api/academies/:id/teachers 학원 강사 목록
+GET    /api/academies/:id/students 학원 학생 목록
+```
+
+#### 수업 관리 (Classes)
+```
+POST   /api/classes                수업 생성
+GET    /api/classes                수업 목록 조회
+GET    /api/classes/:id            수업 상세 조회
+PATCH  /api/classes/:id            수업 정보 수정
+DELETE /api/classes/:id            수업 삭제
+POST   /api/classes/:id/enroll     수강 신청
+```
+
+#### 수업 세션 (Sessions)
+```
+POST   /api/sessions               수업 세션 생성 (수업 종료 처리)
+GET    /api/sessions               세션 목록 조회
+GET    /api/sessions/:id           세션 상세 조회
+PATCH  /api/sessions/:id           세션 수정
+POST   /api/sessions/:id/notify    알림 발송
+```
+
+#### 출결 관리 (Attendance)
+```
+POST   /api/attendance             출석 체크
+GET    /api/attendance/session/:id 세션별 출석 현황
+GET    /api/attendance/student/:id 학생별 출석 현황
+PATCH  /api/attendance/:id         출석 수정
+```
+
+#### 보강 관리 (Makeup Classes)
+```
+POST   /api/makeup/slots           보강 슬롯 생성
+GET    /api/makeup/slots           보강 슬롯 목록 (캘린더용)
+PATCH  /api/makeup/slots/:id       슬롯 수정/마감
+DELETE /api/makeup/slots/:id       슬롯 삭제
+
+POST   /api/makeup/requests        보강 신청
+GET    /api/makeup/requests        보강 신청 목록
+PATCH  /api/makeup/requests/:id    보강 승인/거절
+DELETE /api/makeup/requests/:id    보강 취소
+```
+
+#### 알림 (Notifications)
+```
+POST   /api/notifications          알림 발송
+GET    /api/notifications          알림 목록 조회
+GET    /api/notifications/:id      알림 상세 조회
+PATCH  /api/notifications/:id/read 알림 읽음 처리
+```
+
+#### AI 질문 (AI Questions)
+```
+POST   /api/ai/questions           문제 업로드 및 AI 분석 요청
+GET    /api/ai/questions           질문 목록 조회
+GET    /api/ai/questions/:id       질문 상세 조회
+POST   /api/ai/similar-problems    유사 문제 생성
+PATCH  /api/ai/questions/:id/feedback  이해도 피드백
+```
+
+#### 학습 분석 (Analytics)
+```
+GET    /api/analytics/student/:id  학생 학습 분석
+GET    /api/analytics/class/:id    수업별 통계
+GET    /api/analytics/teacher/:id  강사별 대시보드
+```
+
+### 3.4 시스템 흐름도
+
+#### 수업 종료 후 알림 발송 프로세스
+```
+[선생님] 수업 종료 버튼 클릭
+    ↓
+[Frontend] 출석/진도/숙제 데이터 입력 화면
+    ↓
+[선생님] 정보 입력 후 "알림 발송" 클릭
+    ↓
+[Frontend] POST /api/sessions (세션 생성)
+    ↓
+[Backend] 데이터베이스에 세션 저장
+    ↓
+[Backend] 출결 데이터 저장 (attendance 테이블)
+    ↓
+[Backend] 알림 메시지 생성 (학생별/학부모별)
+    ↓
+[Backend] 알림 발송 큐에 추가
+    ↓
+[Background Worker] 비동기 알림 발송
+    ├─ 카카오 알림톡 API 호출
+    ├─ 실패 시 SMS API 호출
+    └─ 앱 설치 시 푸시 알림 발송
+    ↓
+[Backend] 알림 발송 결과 로그 저장
+    ↓
+[Frontend] 발송 완료 알림 표시
+```
+
+#### AI 문제 풀이 프로세스
+```
+[학생] 문제 사진 촬영/업로드
+    ↓
+[Frontend] 이미지 전처리 (회전 보정, 압축)
+    ↓
+[Frontend] POST /api/ai/questions + 이미지 base64
+    ↓
+[Backend] S3에 이미지 업로드
+    ↓
+[Backend] Claude API Vision 호출
+    ├─ 이미지 분석
+    ├─ 문제 텍스트 추출
+    └─ 문제 유형 분류
+    ↓
+[Backend] Claude API 재호출 (풀이 생성)
+    ├─ 단계별 풀이
+    ├─ 핵심 개념 설명
+    └─ 주의사항 안내
+    ↓
+[Backend] 응답 파싱 및 DB 저장
+    ↓
+[Frontend] 풀이 화면 렌더링
+    ↓
+[학생] "비슷한 문제" 클릭 (선택)
+    ↓
+[Frontend] POST /api/ai/similar-problems
+    ↓
+[Backend] Claude API 호출 (유사 문제 3개 생성)
+    ↓
+[Backend] 유사 문제 저장
+    ↓
+[Frontend] 연습 문제 목록 표시
+```
+
+#### 보강 신청 프로세스
+```
+[시스템] 결석 감지 (출석 체크 시)
+    ↓
+[Backend] 보강 대상자 자동 등록
+    ↓
+[Backend] 학생/학부모에게 보강 신청 링크 발송
+    ↓
+[학생/학부모] 보강 신청 링크 클릭
+    ↓
+[Frontend] GET /api/makeup/slots (가능한 슬롯 조회)
+    ↓
+[Frontend] 보강 일정 선택 화면 표시
+    ↓
+[학생/학부모] 원하는 시간 선택 후 신청
+    ↓
+[Frontend] POST /api/makeup/requests
+    ↓
+[Backend] 보강 신청 저장 (status: pending)
+    ↓
+[Backend] 선생님에게 승인 요청 알림 발송
+    ↓
+[선생님] 보강 신청 관리 화면에서 확인
+    ↓
+[선생님] 승인/거절 결정
+    ↓
+[Frontend] PATCH /api/makeup/requests/:id
+    ↓
+[Backend] 상태 업데이트 (approved/rejected)
+    ↓
+[Backend] 결과 알림 발송 (학생/학부모)
+    ↓
+[시스템] D-1 보강 리마인더 자동 발송
+```
+
+---
+
+## 🎨 4. UI/UX 설계
+
+### 4.1 사용자별 메인 화면
+
+#### 선생님 대시보드
+```
+┌──────────────────────────────────────────────────┐
+│  ○○학원 관리 시스템              [알림🔔] [설정⚙️] │
+├──────────────────────────────────────────────────┤
+│  👨‍🏫 김선생님 님, 환영합니다!                        │
+│  오늘 수업: 3개 | 보강 대기: 2건                    │
+├──────────────────────────────────────────────────┤
+│  📅 오늘 일정 (2026.03.26 화)                      │
+│  ┌────────────────────────────────────────────┐ │
+│  │ 15:00-17:00  수학 중2 기본반 (8/10명)       │ │
+│  │ [ 출석 체크 ] [ 수업 자료 ]                 │ │
+│  ├────────────────────────────────────────────┤ │
+│  │ 17:00-19:00  수학 중3 심화반 (12/12명)     │ │
+│  │ [ 출석 체크 ] [ 수업 자료 ]                 │ │
+│  ├────────────────────────────────────────────┤ │
+│  │ 19:00-21:00  수학 고1 특강 (6/15명)        │ │
+│  │ [ 출석 체크 ] [ 수업 자료 ]                 │ │
+│  └────────────────────────────────────────────┘ │
+│                                                  │
+│  🔄 보강 신청 관리                                 │
+│  ┌────────────────────────────────────────────┐ │
+│  │ 🔔 대기 중 (2건)                            │ │
+│  │ • 신동엽 → 3/28(목) 13:00 [승인] [거절]   │ │
+│  │ • 오나라 → 3/30(토) 10:00 [승인] [거절]   │ │
+│  └────────────────────────────────────────────┘ │
+│                                                  │
+│  📊 이번 주 통계                                   │
+│  • 총 수업: 15회                                  │
+│  • 평균 출석률: 92%                               │
+│  • AI 질문: 47건 (전주 대비 +12%)                 │
+│                                                  │
+│  [ 수업 종료 처리 ] [ 보강 일정 관리 ]            │
+│  [ 학생 분석 보기 ] [ 알림 발송 내역 ]            │
+└──────────────────────────────────────────────────┘
+```
+
+#### 학생 대시보드
+```
+┌──────────────────────────────────────────────────┐
+│  📚 나의 학습                    [알림🔔] [프로필👤] │
+├──────────────────────────────────────────────────┤
+│  안녕하세요, 김철수 님! 😊                          │
+│  오늘도 열심히 공부해봐요!                          │
+├──────────────────────────────────────────────────┤
+│  📅 다음 수업                                      │
+│  ┌────────────────────────────────────────────┐ │
+│  │ 3/28 (목) 17:00-19:00                      │ │
+│  │ 수학 중3 심화반                             │ │
+│  │ 예정 진도: 이차함수 그래프                  │ │
+│  │ [ 수업 준비물 확인 ]                        │ │
+│  └────────────────────────────────────────────┘ │
+│                                                  │
+│  📝 오늘의 숙제                                    │
+│  ┌────────────────────────────────────────────┐ │
+│  │ ✅ 영어 단어 암기 (20개) - 완료!            │ │
+│  │ ⏳ 수학 최상위 p.132-135 - 기한: 3/28      │ │
+│  │ ⏳ 국어 독후감 작성 - 기한: 3/30           │ │
+│  └────────────────────────────────────────────┘ │
+│                                                  │
+│  🤖 AI 선생님                                      │
+│  ┌────────────────────────────────────────────┐ │
+│  │ 📸 문제 사진 찍어서 질문하기                │ │
+│  │ 📚 이번 주 질문: 3건                        │ │
+│  │ 📊 내 취약 분야: 이차함수, 확률             │ │
+│  │ [ 질문하기 ] [ 질문 내역 ]                 │ │
+│  └────────────────────────────────────────────┘ │
+│                                                  │
+│  🔄 보강 신청                                      │
+│  ┌────────────────────────────────────────────┐ │
+│  │ 결석 기록: 없음 👍                          │ │
+│  │ 진행 중인 보강: 없음                        │ │
+│  └────────────────────────────────────────────┘ │
+│                                                  │
+│  [ 전체 일정 보기 ] [ 성적 확인 ]                 │
+└──────────────────────────────────────────────────┘
+```
+
+#### 학부모 대시보드
+```
+┌──────────────────────────────────────────────────┐
+│  👨‍👩‍👧 자녀 학습 현황                [알림🔔] [설정⚙️] │
+├──────────────────────────────────────────────────┤
+│  자녀 선택: [김철수 ▼]                              │
+├──────────────────────────────────────────────────┤
+│  📊 이번 주 학습 요약                               │
+│  ┌────────────────────────────────────────────┐ │
+│  │ 출석률: ████████░░ 80% (4/5회)            │ │
+│  │ 숙제 완료율: ██████████ 100% (12/12건)    │ │
+│  │ AI 질문: 3건 (주로 이차방정식)             │ │
+│  └────────────────────────────────────────────┘ │
+│                                                  │
+│  📅 최근 수업 현황                                  │
+│  ┌────────────────────────────────────────────┐ │
+│  │ 3/26(화) 수학 중3 심화반 - ✅ 출석          │ │
+│  │ 진도: 이차방정식 활용                       │ │
+│  │ 숙제: 최상위 수학 p.132-135                │ │
+│  │ 선생님 코멘트: "수업 집중도 우수!"          │ │
+│  │ [ 상세 보기 ]                              │ │
+│  ├────────────────────────────────────────────┤ │
+│  │ 3/24(일) 영어 독해 - ✅ 출석                │ │
+│  │ 진도: 지문 분석 (5개)                       │ │
+│  │ [ 상세 보기 ]                              │ │
+│  └────────────────────────────────────────────┘ │
+│                                                  │
+│  🔄 보강 관리                                      │
+│  ┌────────────────────────────────────────────┐ │
+│  │ 진행 중인 보강 신청: 없음                   │ │
+│  │ 완료된 보강: 1건 (3/15)                    │ │
+│  └────────────────────────────────────────────┘ │
+│                                                  │
+│  💬 선생님께 문의                                   │
+│  [ 상담 예약 ] [ 메시지 보내기 ]                   │
+│                                                  │
+│  [ 월간 리포트 보기 ] [ 수업 일정 ]               │
+└──────────────────────────────────────────────────┘
+```
+
+### 4.2 디자인 시스템
+
+#### 색상 팔레트
+```css
+/* Primary Colors */
+--primary-50: #E3F2FD;
+--primary-100: #BBDEFB;
+--primary-500: #2196F3;  /* 메인 파랑 */
+--primary-700: #1976D2;
+--primary-900: #0D47A1;
+
+/* Accent Colors */
+--accent-orange: #FF9800;  /* 강조 (버튼, 알림 뱃지) */
+--accent-green: #4CAF50;   /* 성공, 출석 */
+--accent-red: #F44336;     /* 경고, 결석 */
+--accent-yellow: #FFC107;  /* 주의, 지각 */
+
+/* Neutral Colors */
+--gray-50: #FAFAFA;
+--gray-100: #F5F5F5;
+--gray-300: #E0E0E0;
+--gray-500: #9E9E9E;
+--gray-700: #616161;
+--gray-900: #212121;
+
+/* Semantic Colors */
+--success: #4CAF50;
+--warning: #FF9800;
+--error: #F44336;
+--info: #2196F3;
+```
+
+#### 타이포그래피
+```css
+/* Font Family */
+font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+
+/* Font Sizes */
+--text-xs: 12px;    /* 캡션, 보조 정보 */
+--text-sm: 14px;    /* 본문 작은 글씨 */
+--text-base: 16px;  /* 기본 본문 */
+--text-lg: 18px;    /* 강조 텍스트 */
+--text-xl: 20px;    /* 소제목 */
+--text-2xl: 24px;   /* 제목 */
+--text-3xl: 30px;   /* 큰 제목 */
+
+/* Font Weights */
+--font-regular: 400;
+--font-medium: 500;
+--font-semibold: 600;
+--font-bold: 700;
+```
+
+#### 컴포넌트 스타일 가이드
+
+**버튼:**
+```css
+.btn-primary {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.btn-secondary {
+  background: white;
+  color: #2196F3;
+  border: 2px solid #2196F3;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+```
+
+**카드:**
+```css
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #F5F5F5;
+}
+```
+
+**알림 뱃지:**
+```css
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-success { background: #E8F5E9; color: #2E7D32; }
+.badge-warning { background: #FFF3E0; color: #E65100; }
+.badge-error { background: #FFEBEE; color: #C62828; }
+```
+
+### 4.3 반응형 디자인
+
+**브레이크포인트:**
+```css
+/* Mobile First Approach */
+--mobile: 320px ~ 767px;     /* 스마트폰 */
+--tablet: 768px ~ 1023px;    /* 태블릿 */
+--desktop: 1024px ~ 1439px;  /* 데스크톱 */
+--wide: 1440px+;             /* 와이드 스크린 */
+```
+
+**모바일 최적화 우선:**
+- 선생님: 태블릿 사용 고려 (수업 중 출석 체크)
+- 학생: 스마트폰 위주 (AI 질문 기능)
+- 학부모: 스마트폰 위주 (알림 확인)
+
+---
+
+## 🔐 5. 보안 및 개인정보 처리
+
+### 5.1 인증/인가
+
+**JWT 기반 인증:**
+```javascript
+// Access Token (짧은 유효기간)
+{
+  userId: "U001",
+  role: "teacher",
+  academyId: "A001",
+  exp: 15분
+}
+
+// Refresh Token (긴 유효기간)
+{
+  userId: "U001",
+  tokenVersion: 1,
+  exp: 7일
+}
+```
+
+**역할 기반 접근 제어 (RBAC):**
+```
+teacher:
+  - 자기 수업 관리
+  - 출석 체크
+  - 알림 발송
+  - 보강 승인/거절
+  - 학생 학습 분석 조회
+
+student:
+  - 자기 정보 조회
+  - 숙제 확인
+  - AI 질문
+  - 보강 신청
+
+parent:
+  - 자녀 정보 조회
+  - 알림 수신
+  - 선생님 문의
+  - 자녀 대신 보강 신청
+```
+
+### 5.2 데이터 암호화
+
+**전송 중 암호화:**
+- HTTPS/TLS 1.3 의무화
+- API 통신 모두 암호화
+
+**저장 데이터 암호화:**
+- 비밀번호: bcrypt (salt rounds: 12)
+- 민감정보: AES-256-GCM
+
+### 5.3 개인정보 처리
+
+**수집하는 개인정보:**
+- 필수: 이름, 이메일, 전화번호, 역할
+- 선택: 학교명, 학년, 학생-학부모 관계
+
+**보관 기간:**
+- 회원 정보: 탈퇴 후 1년
+- 수업 기록: 3년 (교육 관계법 준수)
+- AI 질문 기록: 1년
+- 알림 로그: 6개월
+
+**제3자 제공:**
+- Anthropic (AI 분석): 문제 이미지, 학생 학년 정보
+- NHN Cloud (SMS): 전화번호, 메시지 내용
+- Kakao (알림톡): 전화번호, 메시지 내용
+
+---
+
+## 📱 6. 알림 시스템 상세
+
+### 6.1 카카오 알림톡 설정
+
+**사전 준비:**
+1. 카카오비즈니스 채널 개설
+2. 발신프로필 등록 (학원명)
+3. 알림톡 템플릿 승인 신청
+
+**템플릿 예시:**
+```
+템플릿 코드: ATTENDANCE_NOTICE_01
+템플릿 이름: 출석 학생 수업 알림
+
+[#{학원명}] #{학생명} 학생 수업 알림
+
+📚 오늘 수업 (#{날짜})
+- 과목: #{과목명}
+- 진도: #{진도내용}
+
+📝 숙제
+#{숙제내용}
+제출: #{제출기한}
+
+📅 다음 수업
+#{다음수업일시}
+예정: #{다음진도}
+
+💬 선생님 코멘트
+#{코멘트}
+
+버튼: [숙제 확인] [질문하기]
+```
+
+### 6.2 SMS 폴백
+
+**LMS (장문) 사용:**
+- 카카오 알림톡 실패 시 자동 전환
+- 최대 2,000자 지원
+- 동일한 메시지 포맷 유지
+
+### 6.3 알림 전송 우선순위
+
+**실시간 알림 (즉시 발송):**
+- 수업 종료 후 알림
+- 결석 알림
+- 보강 승인/거절 알림
+
+**예약 알림 (스케줄 발송):**
+- 수업 D-1 리마인더 (전날 19:00)
+- 보강 D-1 리마인더
+- 숙제 마감 D-1 리마인더
+
+**배치 알림 (일괄 발송):**
+- 주간 학습 리포트 (매주 일요일 18:00)
+- 월간 종합 리포트 (매월 말일 18:00)
+
+### 6.4 알림 수신 설정
+
+**사용자별 맞춤 설정:**
+```
+┌─────────────────────────────────────┐
+│  🔔 알림 설정                        │
+├─────────────────────────────────────┤
+│  수업 알림                           │
+│  [✓] 수업 종료 알림                  │
+│  [✓] 출석 확인 알림                  │
+│  [ ] 수업 시작 리마인더              │
+│                                     │
+│  보강 알림                           │
+│  [✓] 보강 신청 알림                  │
+│  [✓] 보강 D-1 리마인더               │
+│                                     │
+│  학습 리포트                         │
+│  [✓] 주간 리포트 (일요일 18:00)      │
+│  [ ] 월간 리포트 (말일 18:00)        │
+│                                     │
+│  수신 채널                           │
+│  [✓] 카카오톡                        │
+│  [✓] 문자 (SMS)                     │
+│  [✓] 앱 푸시                         │
+│                                     │
+│  [ 저장하기 ]                        │
+└─────────────────────────────────────┘
+```
+
+---
+
+## 🧪 7. 테스트 계획
+
+### 7.1 단위 테스트
+- Jest + React Testing Library (Frontend)
+- Jest + Supertest (Backend API)
+- 목표 커버리지: 80%+
+
+### 7.2 통합 테스트
+- API 엔드포인트 테스트
+- 데이터베이스 CRUD 테스트
+- 외부 API 모킹 테스트
+
+### 7.3 E2E 테스트
+- Playwright 사용
+- 핵심 사용자 플로우 테스트:
+  - 수업 종료 후 알림 발송
+  - 보강 신청 프로세스
+  - AI 문제 풀이 요청
+
+### 7.4 성능 테스트
+- 동시 사용자 100명 처리
+- API 응답 시간 < 500ms
+- 이미지 업로드 처리 < 3초
+
+---
+
+## 🚀 8. 배포 및 운영
+
+### 8.1 배포 환경
+
+**개발 환경 (Dev):**
+- Frontend: Vercel
+- Backend: Railway / Render
+- Database: Railway MySQL
+
+**프로덕션 환경 (Prod):**
+- Frontend: Vercel (CDN)
+- Backend: AWS EC2 / Lightsail
+- Database: AWS RDS MySQL
+- File Storage: AWS S3
+- CDN: CloudFront
+
+### 8.2 CI/CD 파이프라인
+
+```yaml
+# GitHub Actions
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  test:
+    - 린트 검사
+    - 단위 테스트 실행
+    - 빌드 테스트
+  
+  deploy-dev:
+    - develop 브랜치 → 개발 서버 자동 배포
+  
+  deploy-prod:
+    - main 브랜치 → 프로덕션 수동 승인 후 배포
+```
+
+### 8.3 모니터링
+
+**로깅:**
+- Winston (Node.js 로거)
+- 로그 레벨: error, warn, info, debug
+- 로그 보관: 30일
+
+**에러 추적:**
+- Sentry 연동
+- 실시간 에러 알림
+
+**성능 모니터링:**
+- API 응답 시간
+- 데이터베이스 쿼리 성능
+- 외부 API 호출 성공률
+
+### 8.4 백업
+
+**데이터베이스:**
+- 일일 자동 백업 (새벽 3시)
+- 보관 기간: 30일
+- 복구 테스트: 월 1회
+
+**파일 스토리지:**
+- S3 버저닝 활성화
+- Cross-Region 복제
+
+---
+
+## 📊 9. 예상 비용
+
+### 9.1 개발 비용
+- 개발 기간: 10-12주 (1인 기준)
+- 외주 개발 시: 2,000~3,000만원 (추정)
+
+### 9.2 월간 운영 비용 (학생 100명 기준)
+
+**인프라:**
+- AWS EC2 (t3.small): $15/월
+- AWS RDS MySQL: $15/월
+- AWS S3: $5/월
+- 총: **약 $35 (약 4.5만원)**
+
+**외부 API:**
+- Anthropic Claude API: $50~200/월 (사용량에 따라)
+- 카카오 알림톡: 약 10만원/월 (100명 × 월 4회 × 250원)
+- SMS 폴백: 약 2만원/월 (실패분 10% 가정)
+- 총: **약 12~32만원**
+
+**전체 월 운영비: 약 16.5~36.5만원**
+
+### 9.3 손익분기점
+
+**학생 1인당 월 수강료: 30만원 가정**
+- 학생 100명: 월 매출 3,000만원
+- 운영비: 36.5만원
+- 운영비 비율: **1.2%**
+
+→ 효율적인 비용 구조
+
+---
+
+## 📅 10. 개발 로드맵
+
+### Phase 1: 핵심 기능 (4-6주)
+**Week 1-2: 기반 설정**
+- 프로젝트 초기 설정
+- DB 스키마 구현
+- 인증 시스템 구축
+- 기본 UI 컴포넌트
+
+**Week 3-4: 수업 관리**
+- 수업 CRUD
+- 출석 체크 시스템
+- 수업 세션 기록
+
+**Week 5-6: 알림 시스템**
+- 알림 메시지 생성
+- 카카오/SMS API 연동
+- 알림 발송 로직
+
+### Phase 2: 보강 시스템 (2-3주)
+**Week 7-8:**
+- 보강 슬롯 관리
+- 보강 신청 프로세스
+- 캘린더 UI
+
+**Week 9:**
+- 알림 연동
+- 테스트 및 버그 수정
+
+### Phase 3: AI 문제 풀이 (3-4주)
+**Week 10-11:**
+- 이미지 업로드 시스템
+- Claude API 연동
+- 풀이 화면 구현
+
+**Week 12-13:**
+- 유사 문제 생성
+- 학습 분석 대시보드
+- 최적화
+
+### Phase 4: 테스트 및 배포 (1-2주)
+**Week 14-15:**
+- 통합 테스트
+- 성능 최적화
+- 베타 테스트
+- 프로덕션 배포
+
+---
+
+## 🎯 11. 성공 지표 (KPI)
+
+### 11.1 정량적 지표
+
+**사용률:**
+- 월간 활성 사용자(MAU): 목표 80%+
+- 일일 활성 사용자(DAU): 목표 50%+
+- 알림 발송 성공률: 목표 98%+
+
+**효율성:**
+- 수업 종료 처리 시간: 목표 2분 이내
+- 보강 신청 소요 시간: 목표 3분 이내
+- AI 문제 풀이 응답 시간: 목표 10초 이내
+
+**만족도:**
+- 선생님 만족도: 목표 4.5/5.0+
+- 학생 만족도: 목표 4.0/5.0+
+- 학부모 만족도: 목표 4.5/5.0+
+
+### 11.2 정성적 지표
+
+- 수작업 감소로 인한 선생님 업무 부담 경감
+- 학부모-학원 간 신뢰도 향상
+- 학생 자기주도 학습 능력 향상
+
+---
+
+## 🔄 12. 향후 확장 계획
+
+### 12.1 단기 (6개월 내)
+- 성적 관리 기능 추가
+- 학부모 상담 예약 시스템
+- 모바일 앱 출시 (React Native)
+
+### 12.2 중기 (1년 내)
+- 온라인 화상 수업 연동 (Zoom/Google Meet)
+- 학습 영상 콘텐츠 플랫폼
+- 학원 간 네트워크 기능
+
+### 12.3 장기 (2년 내)
+- AI 기반 개인 맞춤 학습 커리큘럼
+- 학원 프랜차이즈 관리 시스템
+- B2B SaaS 전환
+
+---
+
+## 📞 13. 문의 및 지원
+
+**기술 지원:**
+- 개발자 문서: docs.academy-system.com
+- 이메일: support@academy-system.com
+
+**사용자 가이드:**
+- 선생님용 매뉴얼
+- 학생용 매뉴얼
+- 학부모용 매뉴얼
+
+**피드백:**
+- 기능 제안: feedback@academy-system.com
+- 버그 리포트: GitHub Issues
+
+---
+
+## 📄 14. 변경 이력
+
+| 버전 | 날짜 | 변경 내용 | 작성자 |
+|-----|------|---------|-------|
+| 1.0 | 2026.03.26 | 초기 PRD 작성 및 개발 시작 확정 | Claude |
+
+---
+
+## 📝 15. 개발 진행 노트
+
+### 개발 시작 결정 사항
+- **날짜:** 2026년 3월 26일
+- **결정:** 현재 PRD로 Phase 1 개발 시작
+- **방침:** 애자일 방식으로 점진적 보완
+
+### 알려진 미완성 영역 (추후 보완)
+1. 결제 시스템 상세 설계
+2. 권한 관리 세분화 (원장/강사/행정/조교)
+3. 예외 상황 처리 정책
+4. 성능 최적화 및 캐싱 전략
+5. 상세 에러 코드 정의
+6. 사용자 스토리 및 와이어프레임
+7. 통합 시나리오 (기존 시스템 연동)
+
+### 개발 중 의사결정 필요 사항
+- [ ] 보강 크레딧 정책 (무제한 vs 제한)
+- [ ] 결제 연동 방식 (PG사 선정)
+- [ ] 이미지 용량 제한 및 압축률
+- [ ] AI API 월간 예산 상한선
+- [ ] 알림 발송 실패 재시도 횟수
+
+---
+
+**문서 승인:**
+- 제품 책임자: [✓] 개발 시작 승인
+- 개발 리드: [ ]
+- 디자인 리드: [ ]
+
+---
+
+**다음 단계:**
+1. Phase 1 개발 환경 구축
+2. Git Repository 생성
+3. 프로젝트 초기 설정 (React + Express)
+4. DB 스키마 구현
+
+이 문서는 프로젝트 진행 중 지속적으로 업데이트됩니다.  
+최종 수정: 2026년 3월 26일

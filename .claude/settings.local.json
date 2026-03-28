@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(mysql:*)",
+      "Bash(mkdir -p \"C:/프로젝트/01-학생관리/frontend\")",
+      "Bash(npm create:*)",
+      "Bash(npx shadcn@latest init -d)",
+      "Bash(npx shadcn@latest add input label card dialog select badge tabs separator alert-dialog dropdown-menu sonner skeleton -y)",
+      "Bash(npx tsc:*)",
+      "Bash(sc query:*)",
+      "Bash(net start:*)",
+      "Bash(wmic service:*)",
+      "Bash(tasklist)",
+      "Bash(powershell -Command \"Get-Service | Where-Object { \\\\$_.DisplayName -like '*mysql*' -or \\\\$_.Name -like '*mysql*' } | Format-Table Name, DisplayName, Status\" 2>&1)",
+      "Bash(wmic process:*)",
+      "Bash(node -e \":*)",
+      "Bash(npx ts-node:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill //F //IM \"ts-node.exe\")",
+      "Bash(taskkill //F //IM \"node.exe\" //FI \"WINDOWTITLE eq *ts-node*\")",
+      "Bash(netstat -ano)",
+      "Bash(xargs -I{} taskkill //PID {} //F)",
+      "Bash(npm audit:*)"
+    ]
+  }
+}

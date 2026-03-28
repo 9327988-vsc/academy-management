@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학원관리시스템 - 실행 런처</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            position: relative;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .btn::after {
+            content: '\25B6';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .info-item {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .warning-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+        .warning-text {
+            color: #856404;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>학원관리시스템</h1>
+        <p class="subtitle">Academy Smart Management System</p>
+
+        <div class="section">
+            <div class="section-title">최초 1회 설정</div>
+            <button class="btn btn-secondary" onclick="runSetup()">
+                최초 설정 실행 (setup-first-time.bat)
+            </button>
+        </div>
+
+        <div class="section">
+            <div class="section-title">서버 실행</div>
+            <button class="btn btn-primary" onclick="runAll()">
+                전체 실행 (권장) - start-all.bat
+            </button>
+            <button class="btn btn-secondary" onclick="runBackend()">
+                백엔드만 실행 - start-backend.bat
+            </button>
+            <button class="btn btn-secondary" onclick="runFrontend()">
+                프론트엔드만 실행 - start-frontend.bat
+            </button>
+        </div>
+
+        <div class="info">
+            <div class="info-title">접속 정보</div>
+            <div class="info-item">프론트엔드: <a href="http://localhost:5173" target="_blank">http://localhost:5173</a></div>
+            <div class="info-item">백엔드 API: <a href="http://localhost:4000" target="_blank">http://localhost:4000</a></div>
+        </div>
+
+        <div class="warning">
+            <div class="warning-title">주의사항</div>
+            <div class="warning-text">처음 실행하시는 경우 반드시 "최초 설정 실행"을 먼저 클릭하세요!</div>
+        </div>
+    </div>
+
+    <script>
+        function runSetup() {
+            if (confirm('최초 설정을 실행하시겠습니까?\n\n설치에 약 3-5분이 소요됩니다.')) {
+                window.location.href = 'setup-first-time.bat';
+            }
+        }
+
+        function runAll() {
+            window.location.href = 'start-all.bat';
+            setTimeout(function() {
+                if (confirm('서버가 시작되었습니다.\n\n프론트엔드 페이지를 여시겠습니까?')) {
+                    window.open('http://localhost:5173', '_blank');
+                }
+            }, 3000);
+        }
+
+        function runBackend() {
+            window.location.href = 'start-backend.bat';
+        }
+
+        function runFrontend() {
+            window.location.href = 'start-frontend.bat';
+        }
+    </script>
+</body>
+</html>
