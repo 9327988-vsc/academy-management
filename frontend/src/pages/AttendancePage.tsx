@@ -104,62 +104,126 @@ export default function AttendancePage() {
     }
   };
 
-  if (loading) return <div className="space-y-4"><Skeleton className="h-48 rounded-lg" /><Skeleton className="h-64 rounded-lg" /></div>;
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-8 w-8" />
+          <Skeleton className="h-8 w-48" />
+        </div>
+        <Skeleton className="h-[300px] rounded-xl" />
+        <Skeleton className="h-[250px] rounded-xl" />
+      </div>
+    );
+  }
 
-  if (!classInfo) return <p className="text-muted-foreground">수업 정보를 불러올 수 없습니다.</p>;
+  if (!classInfo) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+        </div>
+        <p className="mt-4 text-sm font-medium">수업 정보를 불러올 수 없습니다</p>
+        <Button asChild variant="outline" size="sm" className="mt-4"><Link to="/classes">수업 목록으로</Link></Button>
+      </div>
+    );
+  }
+
+  const presentCount = Object.values(attendance).filter((s) => s === 'present').length;
+  const absentCount = Object.values(attendance).filter((s) => s === 'absent').length;
+  const lateCount = Object.values(attendance).filter((s) => s === 'late').length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" size="sm"><Link to="/classes">&larr; 뒤로</Link></Button>
-        <h1 className="text-2xl font-bold">{classInfo.name} - 출석부</h1>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+            <Link to="/classes">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{classInfo.name}</h1>
+            <p className="text-sm text-muted-foreground">{today} 출석부</p>
+          </div>
+        </div>
       </div>
 
       {/* 출석 체크 */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">출석 체크 ({today})</CardTitle>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => setAllStatus('present')}>전체 출석</Button>
-              <Button size="sm" variant="outline" onClick={() => setAllStatus('absent')}>전체 결석</Button>
+            <div>
+              <CardTitle className="text-base">출석 체크</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {checkedCount}/{students.length}명 체크 완료
+                {checkedCount > 0 && (
+                  <span className="ml-2">
+                    (<span className="text-green-600">{presentCount}</span>
+                    {absentCount > 0 && <> / <span className="text-red-600">{absentCount}</span></>}
+                    {lateCount > 0 && <> / <span className="text-yellow-600">{lateCount}</span></>})
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex gap-1.5">
+              <Button size="sm" variant="outline" onClick={() => setAllStatus('present')} className="text-xs">전체 출석</Button>
+              <Button size="sm" variant="outline" onClick={() => setAllStatus('absent')} className="text-xs">전체 결석</Button>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">출석: {checkedCount}/{students.length}명</p>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent>
           {students.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">등록된 학생이 없습니다.</p>
-              <Button asChild variant="outline"><Link to={`/classes/${classId}/students`}>학생 관리로 이동</Link></Button>
+            <div className="flex flex-col items-center py-8 text-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">등록된 학생이 없습니다.</p>
+              <Button asChild variant="outline" size="sm" className="mt-4"><Link to={`/classes/${classId}/students`}>학생 관리로 이동</Link></Button>
             </div>
           ) : (
-            students.map((s, i) => (
-              <div key={s.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                <span className="font-medium">{i + 1}. {s.name}</span>
-                <div className="flex gap-2">
-                  {(['present', 'absent', 'late'] as const).map((status) => {
-                    const labels = { present: '출석', absent: '결석', late: '지각' };
-                    const isActive = attendance[s.id] === status;
-                    return (
-                      <Button
-                        key={status} size="sm"
-                        variant={isActive ? 'default' : 'outline'}
-                        className={cn(
-                          isActive && status === 'present' && 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200',
-                          isActive && status === 'absent' && 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200',
-                          isActive && status === 'late' && 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200',
-                        )}
-                        aria-label={`${s.name} ${labels[status]}`}
-                        onClick={() => setStatus(s.id, status)}
-                      >
-                        {labels[status]}
-                      </Button>
-                    );
-                  })}
+            <div className="divide-y divide-border">
+              {students.map((s, i) => (
+                <div key={s.id} className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-medium',
+                      attendance[s.id] === 'present' && 'bg-green-100 text-green-700',
+                      attendance[s.id] === 'absent' && 'bg-red-100 text-red-700',
+                      attendance[s.id] === 'late' && 'bg-yellow-100 text-yellow-700',
+                      !attendance[s.id] && 'bg-muted text-muted-foreground',
+                    )}>
+                      {i + 1}
+                    </div>
+                    <span className="text-sm font-medium">{s.name}</span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {(['present', 'absent', 'late'] as const).map((status) => {
+                      const config = {
+                        present: { label: '출석', active: 'bg-green-100 text-green-700 border-green-200 hover:bg-green-200' },
+                        absent: { label: '결석', active: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200' },
+                        late: { label: '지각', active: 'bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200' },
+                      }[status];
+                      const isActive = attendance[s.id] === status;
+                      return (
+                        <button
+                          key={status}
+                          type="button"
+                          className={cn(
+                            'rounded-md border px-3 py-1.5 text-xs font-medium transition-colors',
+                            isActive ? config.active : 'border-input bg-background text-muted-foreground hover:bg-accent',
+                          )}
+                          aria-label={`${s.name} ${config.label}`}
+                          onClick={() => setStatus(s.id, status)}
+                        >
+                          {config.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -168,48 +232,49 @@ export default function AttendancePage() {
       {students.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">수업 종료 처리</CardTitle>
+            <CardTitle className="text-base">수업 종료 처리</CardTitle>
+            <p className="text-sm text-muted-foreground">수업 내용을 입력하고 알림을 발송하세요.</p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>교재명</Label>
-                <Input value={sessionForm.textbook} onChange={(e) => setSessionForm((p) => ({ ...p, textbook: e.target.value }))} />
+              <div className="space-y-1.5">
+                <Label className="text-xs">교재명</Label>
+                <Input value={sessionForm.textbook} onChange={(e) => setSessionForm((p) => ({ ...p, textbook: e.target.value }))} placeholder="개념원리 수학" />
               </div>
-              <div className="space-y-2">
-                <Label>페이지</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs">페이지</Label>
                 <Input value={sessionForm.pages} onChange={(e) => setSessionForm((p) => ({ ...p, pages: e.target.value }))} placeholder="p.124-131" />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>오늘 진도</Label>
-              <Input value={sessionForm.topic} onChange={(e) => setSessionForm((p) => ({ ...p, topic: e.target.value }))} />
+            <div className="space-y-1.5">
+              <Label className="text-xs">오늘 진도</Label>
+              <Input value={sessionForm.topic} onChange={(e) => setSessionForm((p) => ({ ...p, topic: e.target.value }))} placeholder="이차방정식의 풀이" />
             </div>
-            <div className="space-y-2">
-              <Label>핵심 개념</Label>
-              <Input value={sessionForm.keyConcepts} onChange={(e) => setSessionForm((p) => ({ ...p, keyConcepts: e.target.value }))} />
+            <div className="space-y-1.5">
+              <Label className="text-xs">핵심 개념</Label>
+              <Input value={sessionForm.keyConcepts} onChange={(e) => setSessionForm((p) => ({ ...p, keyConcepts: e.target.value }))} placeholder="근의 공식, 판별식" />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>숙제</Label>
-                <Input value={sessionForm.homework} onChange={(e) => setSessionForm((p) => ({ ...p, homework: e.target.value }))} />
+              <div className="space-y-1.5">
+                <Label className="text-xs">숙제</Label>
+                <Input value={sessionForm.homework} onChange={(e) => setSessionForm((p) => ({ ...p, homework: e.target.value }))} placeholder="교재 p.132 1~10번" />
               </div>
-              <div className="space-y-2">
-                <Label>숙제 마감일</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs">숙제 마감일</Label>
                 <Input type="date" value={sessionForm.homeworkDueDate} onChange={(e) => setSessionForm((p) => ({ ...p, homeworkDueDate: e.target.value }))} />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>다음 수업 예고</Label>
-              <Input value={sessionForm.nextTopic} onChange={(e) => setSessionForm((p) => ({ ...p, nextTopic: e.target.value }))} />
+            <div className="space-y-1.5">
+              <Label className="text-xs">다음 수업 예고</Label>
+              <Input value={sessionForm.nextTopic} onChange={(e) => setSessionForm((p) => ({ ...p, nextTopic: e.target.value }))} placeholder="이차함수의 그래프" />
             </div>
-            <div className="space-y-2">
-              <Label>특이사항</Label>
-              <Input value={sessionForm.specialNotes} onChange={(e) => setSessionForm((p) => ({ ...p, specialNotes: e.target.value }))} />
+            <div className="space-y-1.5">
+              <Label className="text-xs">특이사항</Label>
+              <Input value={sessionForm.specialNotes} onChange={(e) => setSessionForm((p) => ({ ...p, specialNotes: e.target.value }))} placeholder="중간고사 대비 특강 안내" />
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button asChild variant="outline"><Link to="/classes">취소</Link></Button>
+            <div className="flex items-center justify-end gap-3 border-t border-border pt-4">
+              <Button asChild variant="ghost"><Link to="/classes">취소</Link></Button>
               <Button onClick={handleSubmit} disabled={submitting}>
                 {submitting ? '처리 중...' : '알림 미리보기'}
               </Button>

@@ -43,48 +43,59 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">선생님 회원가입</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">이름</Label>
-              <Input id="name" value={form.name} onChange={(e) => update('name', e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">이메일</Label>
-              <Input id="email" type="email" value={form.email} onChange={(e) => update('email', e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">전화번호</Label>
-              <Input id="phone" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="010-0000-0000" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">비밀번호</Label>
-              <Input id="password" type="password" value={form.password} onChange={(e) => update('password', e.target.value)} required />
-              <p className="text-xs text-muted-foreground">최소 8자, 영문 + 숫자 포함</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-              <Input id="confirmPassword" type="password" value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} required />
-            </div>
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">
+            A
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">선생님 회원가입</h1>
+          <p className="mt-1 text-sm text-muted-foreground">계정을 만들고 학원 관리를 시작하세요</p>
+        </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+        <Card>
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">이름</Label>
+                <Input id="name" value={form.name} onChange={(e) => update('name', e.target.value)} placeholder="홍길동" autoComplete="name" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">이메일</Label>
+                <Input id="email" type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="teacher@academy.com" autoComplete="email" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">전화번호</Label>
+                <Input id="phone" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="010-0000-0000" autoComplete="tel" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">비밀번호</Label>
+                <Input id="password" type="password" value={form.password} onChange={(e) => update('password', e.target.value)} placeholder="8자 이상" autoComplete="new-password" required />
+                <p className="text-xs text-muted-foreground">최소 8자, 영문 + 숫자 포함</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">비밀번호 확인</Label>
+                <Input id="confirmPassword" type="password" value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} placeholder="비밀번호 재입력" autoComplete="new-password" required />
+              </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? '가입 중...' : '회원가입'}
-            </Button>
+              {error && (
+                <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
 
-            <p className="text-center text-sm text-muted-foreground">
-              이미 계정이 있으신가요?{' '}
-              <Link to="/login" className="text-primary hover:underline">로그인</Link>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? '가입 중...' : '회원가입'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          이미 계정이 있으신가요?{' '}
+          <Link to="/login" className="font-medium text-primary hover:underline">로그인</Link>
+        </p>
+      </div>
     </div>
   );
 }
