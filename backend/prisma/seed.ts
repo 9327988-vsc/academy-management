@@ -95,6 +95,36 @@ async function main() {
   }
   console.log(`Students created: ${students.length}`);
 
+  // 4. 학부모 계정 (김철수의 부모 — 전화번호로 매칭)
+  const parentPassword = await bcrypt.hash('parent1234', 10);
+  const parentUser = await prisma.user.upsert({
+    where: { email: 'parent@test.com' },
+    update: {},
+    create: {
+      email: 'parent@test.com',
+      password: parentPassword,
+      name: '김아무개',
+      phone: '010-2222-0001',
+      role: 'parent',
+    },
+  });
+  console.log(`Parent created: ${parentUser.name} (${parentUser.email})`);
+
+  // 5. 학생 계정 (김철수 본인 — 전화번호로 매칭)
+  const studentPassword = await bcrypt.hash('student1234', 10);
+  const studentUser = await prisma.user.upsert({
+    where: { email: 'student@test.com' },
+    update: {},
+    create: {
+      email: 'student@test.com',
+      password: studentPassword,
+      name: '김철수',
+      phone: '010-1111-0001',
+      role: 'student',
+    },
+  });
+  console.log(`Student created: ${studentUser.name} (${studentUser.email})`);
+
   console.log('Seed completed!');
 }
 

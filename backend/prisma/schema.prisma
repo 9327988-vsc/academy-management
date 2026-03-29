@@ -27,6 +27,8 @@ model User {
 enum Role {
   teacher
   principal
+  parent
+  student
 }
 
 model Class {

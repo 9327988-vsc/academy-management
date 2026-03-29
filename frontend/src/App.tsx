@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import Layout from '@/components/layout/Layout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import RoleGuard from '@/components/auth/RoleGuard';
 import LoginPage from '@/pages/LoginPage';
 import SignupPage from '@/pages/SignupPage';
 import DashboardPage from '@/pages/DashboardPage';
@@ -11,6 +12,9 @@ import ClassDetailPage from '@/pages/ClassDetailPage';
 import StudentManagePage from '@/pages/StudentManagePage';
 import AttendancePage from '@/pages/AttendancePage';
 import NotificationPage from '@/pages/NotificationPage';
+import ParentDashboard from '@/pages/parent/ParentDashboard';
+import StudentDashboard from '@/pages/student/StudentDashboard';
+import SettingsPage from '@/pages/admin/SettingsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,12 +34,30 @@ export default function App() {
           {/* 인증 필요 라우트 */}
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/classes" element={<ClassListPage />} />
-              <Route path="/classes/:id" element={<ClassDetailPage />} />
-              <Route path="/classes/:id/students" element={<StudentManagePage />} />
-              <Route path="/classes/:id/attendance" element={<AttendancePage />} />
-              <Route path="/classes/:id/sessions/:sid/notify" element={<NotificationPage />} />
+              {/* 선생님/관리자 라우트 */}
+              <Route element={<RoleGuard allowedRoles={['teacher', 'principal']} />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/classes" element={<ClassListPage />} />
+                <Route path="/classes/:id" element={<ClassDetailPage />} />
+                <Route path="/classes/:id/students" element={<StudentManagePage />} />
+                <Route path="/classes/:id/attendance" element={<AttendancePage />} />
+                <Route path="/classes/:id/sessions/:sid/notify" element={<NotificationPage />} />
+              </Route>
+
+              {/* 관리자 전용 */}
+              <Route element={<RoleGuard allowedRoles={['principal']} />}>
+                <Route path="/admin/settings" element={<SettingsPage />} />
+              </Route>
+
+              {/* 학부모 라우트 */}
+              <Route element={<RoleGuard allowedRoles={['parent']} redirectTo="/login" />}>
+                <Route path="/parent/dashboard" element={<ParentDashboard />} />
+              </Route>
+
+              {/* 학생 라우트 */}
+              <Route element={<RoleGuard allowedRoles={['student']} redirectTo="/login" />}>
+                <Route path="/student/dashboard" element={<StudentDashboard />} />
+              </Route>
             </Route>
           </Route>
 

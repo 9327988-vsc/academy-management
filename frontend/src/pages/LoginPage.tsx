@@ -24,7 +24,10 @@ export default function LoginPage() {
       const res = await loginApi(email, password);
       if (res.success) {
         setAuth(res.user, res.accessToken, res.refreshToken);
-        navigate('/dashboard');
+        const dest = res.user.role === 'parent' ? '/parent/dashboard'
+          : res.user.role === 'student' ? '/student/dashboard'
+          : '/dashboard';
+        navigate(dest);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || '로그인에 실패했습니다.');
@@ -41,7 +44,7 @@ export default function LoginPage() {
             A
           </div>
           <h1 className="text-2xl font-bold tracking-tight">학원 관리 시스템</h1>
-          <p className="mt-1 text-sm text-muted-foreground">선생님 계정으로 로그인하세요</p>
+          <p className="mt-1 text-sm text-muted-foreground">계정으로 로그인하세요</p>
         </div>
 
         <Card>
