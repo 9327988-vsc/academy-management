@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { logoutApi } from '@/api/auth.api';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, BookOpen, Settings, LogOut, ChevronDown, Users, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Settings, LogOut, ChevronDown, GraduationCap } from 'lucide-react';
 
 function getNavItems(role?: string) {
   if (role === 'parent') {
