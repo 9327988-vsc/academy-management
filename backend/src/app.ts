@@ -14,6 +14,10 @@ import dashboardRoutes from './routes/dashboard.routes';
 import parentRoutes from './routes/parent.routes';
 import studentPortalRoutes from './routes/studentPortal.routes';
 import adminRoutes from './routes/admin.routes';
+import settingsRoutes from './routes/settings.routes';
+import announcementRoutes from './routes/announcement.routes';
+import systemLogRoutes from './routes/systemLog.routes';
+import paymentRoutes from './routes/payment.routes';
 
 dotenv.config();
 
@@ -53,6 +57,10 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/parent', parentRoutes);
 app.use('/api/student-portal', studentPortalRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/settings', settingsRoutes);
+app.use('/api/admin/announcements', announcementRoutes);
+app.use('/api/admin/logs', systemLogRoutes);
+app.use('/api/admin/payments', paymentRoutes);
 
 // 학부모 삭제 (별도 경로)
 import { authenticate } from './middleware/auth.middleware';

@@ -15,6 +15,10 @@ import NotificationPage from '@/pages/NotificationPage';
 import ParentDashboard from '@/pages/parent/ParentDashboard';
 import StudentDashboard from '@/pages/student/StudentDashboard';
 import SettingsPage from '@/pages/admin/SettingsPage';
+import UsersPage from '@/pages/admin/UsersPage';
+import PaymentsPage from '@/pages/admin/PaymentsPage';
+import AnnouncementsPage from '@/pages/admin/AnnouncementsPage';
+import SystemLogsPage from '@/pages/admin/SystemLogsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +51,10 @@ export default function App() {
               {/* 관리자 전용 */}
               <Route element={<RoleGuard allowedRoles={['principal']} />}>
                 <Route path="/admin/settings" element={<SettingsPage />} />
+                <Route path="/admin/users" element={<UsersPage />} />
+                <Route path="/admin/payments" element={<PaymentsPage />} />
+                <Route path="/admin/announcements" element={<AnnouncementsPage />} />
+                <Route path="/admin/logs" element={<SystemLogsPage />} />
               </Route>
 
               {/* 학부모 라우트 */}

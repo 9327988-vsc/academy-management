@@ -8,8 +8,9 @@ interface RoleGuardProps {
 
 export default function RoleGuard({ allowedRoles, redirectTo = '/dashboard' }: RoleGuardProps) {
   const user = useAuthStore((s) => s.user);
+  const effectiveRole = useAuthStore((s) => s.effectiveRole)();
 
-  if (!user || !allowedRoles.includes(user.role)) {
+  if (!user || !effectiveRole || !allowedRoles.includes(effectiveRole)) {
     return <Navigate to={redirectTo} replace />;
   }
 

@@ -11,9 +11,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { logoutApi } from '@/api/auth.api';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, BookOpen, Settings, LogOut, ChevronDown, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Settings, LogOut, ChevronDown, GraduationCap, Users, UserCircle, Wrench, CreditCard, Megaphone, Activity } from 'lucide-react';
 
-function getNavItems(role?: string) {
+function getNavItems(role?: string | null) {
   if (role === 'parent') {
     return [
       { to: '/parent/dashboard', label: '대시보드', icon: LayoutDashboard },
@@ -29,7 +29,13 @@ function getNavItems(role?: string) {
     { to: '/classes', label: '수업', icon: BookOpen },
   ];
   if (role === 'principal') {
-    items.push({ to: '/admin/settings', label: '설정', icon: Settings });
+    items.push(
+      { to: '/admin/users', label: '사용자', icon: Users },
+      { to: '/admin/payments', label: '결제', icon: CreditCard },
+      { to: '/admin/announcements', label: '공지', icon: Megaphone },
+      { to: '/admin/logs', label: '로그', icon: Activity },
+      { to: '/admin/settings', label: '설정', icon: Settings },
+    );
   }
   return items;
 }
@@ -43,14 +49,28 @@ function getRoleBadge(role?: string) {
   }
 }
 
+const DEV_ROLES = [
+  { value: null, label: '관리자로 보기', icon: Settings },
+  { value: 'teacher', label: '선생님으로 보기', icon: Users },
+  { value: 'parent', label: '학부모로 보기', icon: UserCircle },
+  { value: 'student', label: '학생으로 보기', icon: GraduationCap },
+] as const;
+
+const ROLE_LABEL: Record<string, string> = {
+  teacher: '선생님',
+  parent: '학부모',
+  student: '학생',
+};
+
 export default function Header() {
-  const { user, clearAuth } = useAuthStore();
+  const { user, clearAuth, viewAsRole, setViewAsRole, effectiveRole } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const navItems = getNavItems(user?.role);
-  const roleBadge = getRoleBadge(user?.role);
-  const homePath = user?.role === 'parent' ? '/parent/dashboard'
-    : user?.role === 'student' ? '/student/dashboard'
+  const currentRole = effectiveRole();
+  const navItems = getNavItems(currentRole);
+  const roleBadge = getRoleBadge(currentRole ?? undefined);
+  const homePath = currentRole === 'parent' ? '/parent/dashboard'
+    : currentRole === 'student' ? '/student/dashboard'
     : '/dashboard';
 
   const handleLogout = async () => {
@@ -94,6 +114,46 @@ export default function Header() {
           </nav>
         </div>
 
+        <div className="flex items-center gap-2">
+          {/* 개발자 모드 (관리자 전용) */}
+          {user?.role === 'principal' && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-yellow-200 hover:bg-white/10 hover:text-yellow-100">
+                  <Wrench size={14} />
+                  <span className="hidden sm:inline text-xs">DEV</span>
+                  {viewAsRole && (
+                    <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0 bg-yellow-400/20 text-yellow-200 border-yellow-400/40">
+                      {ROLE_LABEL[viewAsRole] || viewAsRole}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {DEV_ROLES.map(({ value, label, icon: Icon }) => (
+                  <DropdownMenuItem
+                    key={label}
+                    onClick={() => {
+                      setViewAsRole(value);
+                      navigate(value === 'parent' ? '/parent/dashboard' : value === 'student' ? '/student/dashboard' : '/dashboard');
+                    }}
+                    className={cn(viewAsRole === value || (!viewAsRole && value === null) ? 'bg-accent' : '')}
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+                    {label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* 역할 전환 중 경고 배지 */}
+          {viewAsRole && viewAsRole !== user?.role && (
+            <Badge variant="outline" className="hidden sm:flex bg-yellow-100 text-yellow-800 border-yellow-300 text-[10px] px-1.5 py-0">
+              {ROLE_LABEL[viewAsRole]}으로 보는 중
+            </Badge>
+          )}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="gap-2 text-white hover:bg-white/10 hover:text-white">
@@ -121,6 +181,7 @@ export default function Header() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
     </header>
   );
