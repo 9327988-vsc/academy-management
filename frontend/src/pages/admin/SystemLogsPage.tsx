@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getSystemLogsApi } from '@/api/admin.api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +32,7 @@ export default function SystemLogsPage() {
   const [page, setPage] = useState(0);
   const limit = 50;
 
-  const fetchLogs = (offset = 0) => {
+  const fetchLogs = useCallback((offset = 0) => {
     setLoading(true);
     getSystemLogsApi(limit, offset)
       .then((res) => {
@@ -43,9 +43,10 @@ export default function SystemLogsPage() {
       })
       .catch(() => toast.error('로그를 불러올 수 없습니다.'))
       .finally(() => setLoading(false));
-  };
+  }, [limit]);
 
-  useEffect(() => { fetchLogs(page * limit); }, [page]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchLogs(page * limit); }, [page, limit, fetchLogs]);
 
   if (loading && logs.length === 0) {
     return (

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import Layout from '@/components/layout/Layout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import RoleGuard from '@/components/auth/RoleGuard';
@@ -28,6 +29,7 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
@@ -76,5 +78,6 @@ export default function App() {
       </BrowserRouter>
       <Toaster />
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

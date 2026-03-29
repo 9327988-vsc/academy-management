@@ -29,8 +29,9 @@ export default function LoginPage() {
           : '/dashboard';
         navigate(dest);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || '로그인에 실패했습니다.');
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      setError(axiosErr.response?.data?.message || '로그인에 실패했습니다.');
     } finally {
       setLoading(false);
     }

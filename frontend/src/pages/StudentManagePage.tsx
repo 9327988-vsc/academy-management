@@ -31,6 +31,7 @@ export default function StudentManagePage() {
       .finally(() => setLoading(false));
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchStudents(); }, [classId]);
 
   const handleCreate = async (e: React.FormEvent) => {

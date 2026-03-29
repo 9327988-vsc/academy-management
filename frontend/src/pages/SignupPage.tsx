@@ -34,8 +34,9 @@ export default function SignupPage() {
       if (res.success) {
         navigate('/login');
       }
-    } catch (err: any) {
-      const msg = err.response?.data?.message || '회원가입에 실패했습니다.';
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      const msg = axiosErr.response?.data?.message || '회원가입에 실패했습니다.';
       setError(msg);
     } finally {
       setLoading(false);

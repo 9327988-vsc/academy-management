@@ -65,6 +65,7 @@ export default function PaymentsPage() {
       .finally(() => setLoading(false));
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchData(); }, [statusFilter, monthFilter]);
 
   const handleStatusChange = async (id: string, status: string) => {
