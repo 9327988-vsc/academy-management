@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getPaymentsApi, updatePaymentStatusApi, deletePaymentApi, getPaymentStatsApi, createPaymentApi } from '@/api/admin.api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,7 @@ export default function PaymentsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [newPayment, setNewPayment] = useState({ studentId: '', amount: '', month: '', description: '' });
 
-  const fetchData = () => {
+  const fetchData = useCallback(() => {
     const filters: { status?: string; month?: string } = {};
     if (statusFilter) filters.status = statusFilter;
     if (monthFilter) filters.month = monthFilter;
@@ -63,10 +63,9 @@ export default function PaymentsPage() {
     ])
       .catch(() => toast.error('결제 데이터를 불러올 수 없습니다.'))
       .finally(() => setLoading(false));
-  };
+  }, [statusFilter, monthFilter]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchData(); }, [statusFilter, monthFilter]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleStatusChange = async (id: string, status: string) => {
     try {

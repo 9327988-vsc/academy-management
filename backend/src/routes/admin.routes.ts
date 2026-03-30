@@ -12,6 +12,8 @@ router.use(authorize('principal'));
 
 router.get('/users', adminController.listUsers);
 
+router.post('/users/create-with-data', adminController.createUserWithData);
+
 router.patch(
   '/users/:id/role',
   [body('role').notEmpty().withMessage('역할을 지정해주세요.')],
@@ -22,5 +24,9 @@ router.patch(
 router.delete('/users/:id', adminController.deleteUser);
 
 router.get('/stats', adminController.getSystemStats);
+
+// Dev Mode
+router.get('/dev-mode/student-dashboard', adminController.getDevStudentDashboard);
+router.get('/dev-mode/parent-children', adminController.getDevParentChildren);
 
 export default router;

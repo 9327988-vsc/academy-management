@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { authenticate } from '../middleware/auth.middleware';
+import { authorize } from '../middleware/authorize.middleware';
 import { validate } from '../middleware/validate.middleware';
 import * as attendanceController from '../controllers/attendance.controller';
 
 const router = Router();
 
 router.use(authenticate);
+router.use(authorize('teacher', 'principal'));
 
 router.post(
   '/bulk',

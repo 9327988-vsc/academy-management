@@ -169,7 +169,7 @@ export default function AnnouncementsPage() {
               <CardContent>
                 <p className="text-sm text-foreground/80 whitespace-pre-wrap">{a.content}</p>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  {a.author.name} · {new Date(a.createdAt).toLocaleDateString('ko-KR')}
+                  {a.author?.name ?? '알 수 없음'} · {new Date(a.createdAt).toLocaleDateString('ko-KR')}
                 </p>
               </CardContent>
             </Card>

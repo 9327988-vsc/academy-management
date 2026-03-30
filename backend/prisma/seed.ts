@@ -140,10 +140,40 @@ async function main() {
   }
   console.log(`✅ 결제 데이터 ${createdStudents.length}건 생성`);
 
+  // 9. 테스트용 부모2 + 학생2 (연결된 계정)
+  const parentUser2 = await prisma.user.create({
+    data: { email: 'parent2@test.com', password: parentPw, name: '이학부모', phone: '010-5555-6666', role: 'parent' },
+  });
+  console.log(`✅ 테스트 부모2 생성: ${parentUser2.email}`);
+
+  const student2 = await prisma.student.create({
+    data: {
+      name: '이학생',
+      phone: '010-7777-8888',
+      grade: '중2',
+      school: '테스트중학교',
+      teacherId: teacher.id,
+      parents: {
+        create: { name: '이학부모', phone: '010-5555-6666', relationship: '모' },
+      },
+    },
+  });
+
+  const studentUser2 = await prisma.user.create({
+    data: { email: 'student2@test.com', password: studentPw, name: '이학생', phone: '010-7777-8888', role: 'student' },
+  });
+  console.log(`✅ 테스트 학생2 생성: ${studentUser2.email} → 부모: ${parentUser2.name}`);
+
+  // 학생2를 수학 수업에 등록
+  await prisma.classStudent.create({ data: { classId: mathClass.id, studentId: student2.id } });
+  console.log(`✅ 테스트 학생2 수업 등록: ${mathClass.name}`);
+
   // 검증 로그
   console.log('\n📋 매칭 검증:');
   console.log(`  parent@test.com (phone: ${parentUser.phone}) → Parent.phone: 010-2222-0001 → 학생: 김철수`);
   console.log(`  student@test.com (phone: ${studentUser.phone}) → Student.phone: 010-1111-0001 → 학생: 김철수`);
+  console.log(`  parent2@test.com (phone: ${parentUser2.phone}) → Parent.phone: 010-5555-6666 → 학생: 이학생`);
+  console.log(`  student2@test.com (phone: ${studentUser2.phone}) → Student.phone: 010-7777-8888 → 학생: 이학생`);
   console.log('\n🌱 Seed completed!');
 }
 

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { getChildrenApi } from '@/api/parent.api';
+import { getDevParentChildrenApi } from '@/api/admin.api';
+import { useAuthStore } from '@/stores/authStore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { Users, TrendingUp, Calendar, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Users, TrendingUp, Calendar, Clock, CheckCircle, XCircle, AlertTriangle, Wrench } from 'lucide-react';
 
 interface ChildInfo {
   id: string;
@@ -26,13 +28,17 @@ const STATUS_CONFIG = {
 export default function ParentDashboard() {
   const [children, setChildren] = useState<ChildInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const user = useAuthStore((s) => s.user);
+  const viewAsRole = useAuthStore((s) => s.viewAsRole);
+  const isDevMode = user?.role === 'principal' && viewAsRole === 'parent';
 
   useEffect(() => {
-    getChildrenApi()
+    const api = isDevMode ? getDevParentChildrenApi() : getChildrenApi();
+    api
       .then((res) => { if (res.success) setChildren(res.data.children); })
       .catch(() => { toast.error('자녀 정보를 불러올 수 없습니다.'); })
       .finally(() => setLoading(false));
-  }, []);
+  }, [isDevMode]);
 
   if (loading) {
     return (
@@ -58,6 +64,12 @@ export default function ParentDashboard() {
 
   return (
     <div className="space-y-8">
+      {isDevMode && (
+        <div className="flex items-center gap-2 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800">
+          <Wrench size={14} />
+          <span className="font-medium">개발자 모드:</span> 테스트 학부모 데이터를 사용 중입니다
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">학부모 대시보드</h1>
         <p className="mt-1 text-sm text-muted-foreground">자녀의 학원 출석과 수업 현황을 확인하세요.</p>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getClassStudentsApi, enrollStudentApi, unenrollStudentApi } from '@/api/class.api';
 import { createStudentApi, deleteStudentApi } from '@/api/student.api';
@@ -23,16 +23,15 @@ export default function StudentManagePage() {
     parentName: '', parentPhone: '', parentRel: '부',
   });
 
-  const fetchStudents = () => {
+  const fetchStudents = useCallback(() => {
     if (!classId) return;
     getClassStudentsApi(classId)
       .then((res) => { if (res.success) setStudents(res.data.students); })
       .catch(() => { toast.error('학생 목록을 불러올 수 없습니다.'); })
       .finally(() => setLoading(false));
-  };
+  }, [classId]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchStudents(); }, [classId]);
+  useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

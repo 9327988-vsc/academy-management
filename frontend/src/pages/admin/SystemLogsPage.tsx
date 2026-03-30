@@ -45,7 +45,6 @@ export default function SystemLogsPage() {
       .finally(() => setLoading(false));
   }, [limit]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchLogs(page * limit); }, [page, limit, fetchLogs]);
 
   if (loading && logs.length === 0) {

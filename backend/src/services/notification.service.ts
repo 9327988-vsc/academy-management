@@ -133,7 +133,9 @@ export async function sendNotification(sessionId: string, teacherId: string) {
   for (const student of allStudents) {
     for (const recipient of student.recipients) {
       // MVP: 콘솔 로그로 대체 (Phase 2에서 실제 SMS 발송)
-      console.log(`[SMS 발송] ${recipient.name} (${recipient.phone}): ${student.message.substring(0, 50)}...`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[SMS 발송] ${recipient.name}: ${student.message.substring(0, 50)}...`);
+      }
 
       const notification = await prisma.notification.create({
         data: {

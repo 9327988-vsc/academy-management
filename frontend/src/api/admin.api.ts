@@ -11,6 +11,20 @@ export async function updateUserRoleApi(userId: string, role: string) {
   return data;
 }
 
+export async function createUserWithDataApi(body: {
+  email: string;
+  password: string;
+  name: string;
+  phone: string;
+  role: string;
+  grade?: string;
+  school?: string;
+  parentPhone?: string;
+}) {
+  const { data } = await client.post('/admin/users/create-with-data', body);
+  return data;
+}
+
 export async function deleteUserApi(userId: string) {
   const { data } = await client.delete(`/admin/users/${userId}`);
   return data;
@@ -91,5 +105,16 @@ export async function deletePaymentApi(id: string) {
 
 export async function getPaymentStatsApi() {
   const { data } = await client.get('/admin/payments/stats');
+  return data;
+}
+
+// Dev Mode
+export async function getDevStudentDashboardApi() {
+  const { data } = await client.get('/admin/dev-mode/student-dashboard');
+  return data;
+}
+
+export async function getDevParentChildrenApi() {
+  const { data } = await client.get('/admin/dev-mode/parent-children');
   return data;
 }

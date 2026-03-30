@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { authenticate } from '../middleware/auth.middleware';
+import { authorize } from '../middleware/authorize.middleware';
 import { validate } from '../middleware/validate.middleware';
 import * as sessionController from '../controllers/session.controller';
 import * as attendanceController from '../controllers/attendance.controller';
@@ -9,6 +10,7 @@ import * as notificationController from '../controllers/notification.controller'
 const router = Router();
 
 router.use(authenticate);
+router.use(authorize('teacher', 'principal'));
 
 router.post(
   '/',

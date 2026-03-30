@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react';
-import { getAdminUsersApi, updateUserRoleApi, deleteUserApi } from '@/api/admin.api';
+import { getAdminUsersApi, updateUserRoleApi, deleteUserApi, createUserWithDataApi } from '@/api/admin.api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
-import { Users, Trash2, Shield, Search } from 'lucide-react';
+import { Users, Trash2, Shield, Search, UserPlus } from 'lucide-react';
 
 interface UserItem {
   id: string;
@@ -41,6 +45,12 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '', password: '', name: '', phone: '', role: 'student',
+    grade: '', school: '', parentPhone: '',
+  });
   const currentUserId = useAuthStore((s) => s.user?.id);
 
   const fetchUsers = () => {
@@ -51,6 +61,34 @@ export default function UsersPage() {
   };
 
   useEffect(() => { fetchUsers(); }, []);
+
+  const resetForm = () => {
+    setFormData({ email: '', password: '', name: '', phone: '', role: 'student', grade: '', school: '', parentPhone: '' });
+  };
+
+  const handleCreateUser = async () => {
+    if (!formData.email || !formData.password || !formData.name || !formData.phone) {
+      toast.error('필수 항목을 모두 입력해주세요.');
+      return;
+    }
+    setCreating(true);
+    try {
+      const res = await createUserWithDataApi(formData);
+      if (res.data?.warning) {
+        toast.warning(res.data.warning);
+      } else {
+        toast.success('사용자가 생성되었습니다.');
+      }
+      setCreateDialogOpen(false);
+      resetForm();
+      fetchUsers();
+    } catch (err: any) {
+      const msg = err.response?.data?.message || '사용자 생성에 실패했습니다.';
+      toast.error(msg);
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
@@ -121,7 +159,75 @@ export default function UsersPage() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
+        <Button size="sm" onClick={() => { resetForm(); setCreateDialogOpen(true); }} className="gap-1.5">
+          <UserPlus size={14} />
+          사용자 추가
+        </Button>
       </div>
+
+      {/* 사용자 생성 Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>사용자 생성</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>역할</Label>
+              <select
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="student">학생</option>
+                <option value="parent">학부모</option>
+                <option value="teacher">선생님</option>
+                <option value="principal">관리자</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>이름 *</Label>
+              <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="홍길동" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>이메일 *</Label>
+              <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="test@example.com" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>비밀번호 *</Label>
+              <Input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="최소 8자" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>전화번호 *</Label>
+              <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="010-1234-5678" />
+            </div>
+
+            {formData.role === 'student' && (
+              <>
+                <div className="space-y-1.5">
+                  <Label>학년</Label>
+                  <Input value={formData.grade} onChange={(e) => setFormData({ ...formData, grade: e.target.value })} placeholder="중1" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>학교</Label>
+                  <Input value={formData.school} onChange={(e) => setFormData({ ...formData, school: e.target.value })} placeholder="테스트중학교" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>부모님 전화번호 (연결)</Label>
+                  <Input value={formData.parentPhone} onChange={(e) => setFormData({ ...formData, parentPhone: e.target.value })} placeholder="010-9999-8888" />
+                  <p className="text-xs text-muted-foreground">이미 등록된 부모님의 전화번호를 입력하면 자동 연결됩니다</p>
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>취소</Button>
+            <Button onClick={handleCreateUser} disabled={creating}>
+              {creating ? '생성 중...' : '생성'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 사용자 목록 */}
       <Card>
