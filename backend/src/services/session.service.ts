@@ -1,82 +1,67 @@
 import prisma from '../utils/prisma';
 
-export async function createSession(teacherId: string, data: {
-  classId: string;
-  sessionDate: string;
+// ClassSession → ClassSchedule 로 변경
+export async function createSession(teacherId: number, data: {
+  classId: number;
+  date: string;
   startTime: string;
   endTime: string;
-  topic?: string;
-  textbook?: string;
-  pages?: string;
-  keyConcepts?: string;
-  homework?: string;
-  homeworkDueDate?: string;
-  nextTopic?: string;
-  specialNotes?: string;
 }) {
-  const cls = await prisma.class.findFirst({ where: { id: data.classId, teacherId } });
+  const cls = await prisma.class.findFirst({
+    where: { id: data.classId, teacherId },
+  });
   if (!cls) {
     throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
   }
 
-  const { classId, sessionDate, homeworkDueDate, ...rest } = data;
-
-  return prisma.classSession.create({
+  return prisma.classSchedule.create({
     data: {
-      classId,
-      sessionDate: new Date(sessionDate),
-      homeworkDueDate: homeworkDueDate ? new Date(homeworkDueDate) : null,
-      ...rest,
+      classId: data.classId,
+      date: new Date(data.date),
+      startTime: data.startTime,
+      endTime: data.endTime,
+      status: 'SCHEDULED',
     },
   });
 }
 
-export async function getSessionById(sessionId: string, teacherId: string) {
-  const session = await prisma.classSession.findFirst({
+export async function getSessionById(sessionId: number, teacherId: number) {
+  const schedule = await prisma.classSchedule.findFirst({
     where: { id: sessionId },
     include: {
       class: {
         select: { id: true, name: true, subject: true, teacherId: true },
       },
-      attendance: {
-        include: { student: { select: { id: true, name: true } } },
-      },
     },
   });
 
-  if (!session || session.class.teacherId !== teacherId) {
-    throw Object.assign(new Error('세션을 찾을 수 없습니다.'), { status: 404 });
+  if (!schedule || schedule.class.teacherId !== teacherId) {
+    throw Object.assign(new Error('일정을 찾을 수 없습니다.'), { status: 404 });
   }
 
   return {
-    ...session,
-    class: { id: session.class.id, name: session.class.name, subject: session.class.subject },
-    attendance: session.attendance.map((a) => ({
-      id: a.id,
-      studentId: a.student.id,
-      studentName: a.student.name,
-      status: a.status,
-      checkTime: a.checkTime,
-      notes: a.notes,
-    })),
+    ...schedule,
+    class: { id: schedule.class.id, name: schedule.class.name, subject: schedule.class.subject },
   };
 }
 
-export async function getClassSessions(classId: string, teacherId: string, limit = 10, offset = 0) {
-  const cls = await prisma.class.findFirst({ where: { id: classId, teacherId } });
+export async function getClassSessions(classId: number, teacherId: number, limit = 10, offset = 0) {
+  const cls = await prisma.class.findFirst({
+    where: { id: classId, teacherId },
+  });
   if (!cls) {
     throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
   }
 
   const [sessions, total] = await Promise.all([
-    prisma.classSession.findMany({
+    prisma.classSchedule.findMany({
       where: { classId },
-      select: { id: true, sessionDate: true, topic: true, notificationSent: true },
-      orderBy: { sessionDate: 'desc' },
+      select: { id: true, date: true, startTime: true, endTime: true, status: true },
+      orderBy: { date: 'desc' },
       skip: offset,
       take: limit,
     }),
-    prisma.classSession.count({ where: { classId } }),
+    prisma.classSchedule.count({ where: { classId } }),
   ]);
 
   return { sessions, total };

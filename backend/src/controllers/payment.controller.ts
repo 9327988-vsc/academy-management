@@ -17,8 +17,15 @@ export async function listPayments(req: AuthRequest, res: Response, next: NextFu
 
 export async function createPayment(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { studentId, amount, month, description } = req.body;
-    const payment = await paymentService.createPayment({ studentId, amount, month, description });
+    const { studentId, amount, month, description, dueDate, method } = req.body;
+    const payment = await paymentService.createPayment({
+      studentId: parseInt(studentId),
+      amount,
+      month,
+      dueDate: dueDate ? new Date(dueDate) : new Date(),
+      description,
+      method,
+    });
     res.status(201).json({ success: true, data: payment });
   } catch (err) {
     next(err);
@@ -27,9 +34,9 @@ export async function createPayment(req: AuthRequest, res: Response, next: NextF
 
 export async function updatePaymentStatus(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
     const { status } = req.body;
-    if (!['paid', 'unpaid', 'overdue'].includes(status)) {
+    if (!['PAID', 'PENDING', 'OVERDUE', 'CANCELLED'].includes(status)) {
       res.status(400).json({ success: false, message: '유효하지 않은 결제 상태입니다.' });
       return;
     }
@@ -42,7 +49,7 @@ export async function updatePaymentStatus(req: AuthRequest, res: Response, next:
 
 export async function deletePayment(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
     await paymentService.deletePayment(id);
     res.json({ success: true, message: '결제 내역이 삭제되었습니다.' });
   } catch (err) {

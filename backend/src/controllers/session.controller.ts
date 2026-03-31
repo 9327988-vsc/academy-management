@@ -14,7 +14,7 @@ export async function createSession(req: AuthRequest, res: Response, next: NextF
 
 export async function getSessionById(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const session = await sessionService.getSessionById(req.params.id, req.user!.userId);
+    const session = await sessionService.getSessionById(parseInt(req.params.id), req.user!.userId);
     res.json({ success: true, data: session });
   } catch (err: any) {
     if (err.status) { res.status(err.status).json({ success: false, message: err.message }); return; }
@@ -26,7 +26,7 @@ export async function getClassSessions(req: AuthRequest, res: Response, next: Ne
   try {
     const limit = parseInt(req.query.limit as string) || 10;
     const offset = parseInt(req.query.offset as string) || 0;
-    const result = await sessionService.getClassSessions(req.params.id, req.user!.userId, limit, offset);
+    const result = await sessionService.getClassSessions(parseInt(req.params.id), req.user!.userId, limit, offset);
     res.json({ success: true, data: result });
   } catch (err: any) {
     if (err.status) { res.status(err.status).json({ success: false, message: err.message }); return; }

@@ -11,7 +11,7 @@ export async function createUserWithData(req: AuthRequest, res: Response, next: 
       return;
     }
 
-    if (!['teacher', 'principal', 'parent', 'student'].includes(role)) {
+    if (!['TEACHER', 'ADMIN', 'PARENT', 'STUDENT'].includes(role)) {
       res.status(400).json({ success: false, message: '유효하지 않은 역할입니다.' });
       return;
     }
@@ -41,10 +41,10 @@ export async function listUsers(_req: AuthRequest, res: Response, next: NextFunc
 
 export async function updateUserRole(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
     const { role } = req.body;
 
-    if (!['teacher', 'principal', 'parent', 'student'].includes(role)) {
+    if (!['TEACHER', 'ADMIN', 'PARENT', 'STUDENT'].includes(role)) {
       res.status(400).json({ success: false, message: '유효하지 않은 역할입니다.' });
       return;
     }
@@ -58,7 +58,7 @@ export async function updateUserRole(req: AuthRequest, res: Response, next: Next
 
 export async function deleteUser(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
 
     if (id === req.user!.userId) {
       res.status(400).json({ success: false, message: '자신의 계정은 삭제할 수 없습니다.' });

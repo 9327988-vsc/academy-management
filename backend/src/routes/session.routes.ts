@@ -27,7 +27,7 @@ router.post(
 router.get('/:id', sessionController.getSessionById);
 
 // 세션별 출석 현황
-router.get('/:id/attendance', attendanceController.getSessionAttendance);
+router.get('/:id/attendance', attendanceController.getClassAttendance);
 
 // 세션별 알림
 router.post('/:id/preview-notification', notificationController.previewNotification);

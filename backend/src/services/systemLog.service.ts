@@ -1,23 +1,16 @@
-import prisma from '../utils/prisma';
+// SystemLog 모델이 v2 스키마에서 제거됨
+// 향후 로깅 시스템 재구축 시 사용할 스텁
 
-export async function listLogs(limit = 100, offset = 0) {
-  const [logs, total] = await Promise.all([
-    prisma.systemLog.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      skip: offset,
-    }),
-    prisma.systemLog.count(),
-  ]);
-  return { logs, total };
+export async function listLogs(_limit = 100, _offset = 0) {
+  return { logs: [], total: 0 };
 }
 
-export async function createLog(data: {
-  userId?: string;
+export async function createLog(_data: {
+  userId?: number;
   userName?: string;
   action: string;
   target?: string;
   detail?: string;
 }) {
-  return prisma.systemLog.create({ data });
+  // no-op
 }

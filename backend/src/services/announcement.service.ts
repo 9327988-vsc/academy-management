@@ -1,36 +1,27 @@
-import prisma from '../utils/prisma';
+// Announcement 모델이 v2 스키마에서 제거됨
+// 향후 공지사항 시스템 재구축 시 사용할 스텁
 
 export async function listAnnouncements() {
-  return prisma.announcement.findMany({
-    include: { author: { select: { id: true, name: true } } },
-    orderBy: [{ important: 'desc' }, { createdAt: 'desc' }],
-  });
+  return [];
 }
 
-export async function createAnnouncement(data: {
+export async function createAnnouncement(_data: {
   title: string;
   content: string;
   important?: boolean;
-  authorId: string;
+  authorId: number;
 }) {
-  return prisma.announcement.create({
-    data,
-    include: { author: { select: { id: true, name: true } } },
-  });
+  return { id: 0, title: _data.title, content: _data.content, important: _data.important || false };
 }
 
-export async function updateAnnouncement(id: string, data: {
+export async function updateAnnouncement(_id: number, _data: {
   title?: string;
   content?: string;
   important?: boolean;
 }) {
-  return prisma.announcement.update({
-    where: { id },
-    data,
-    include: { author: { select: { id: true, name: true } } },
-  });
+  return null;
 }
 
-export async function deleteAnnouncement(id: string) {
-  await prisma.announcement.delete({ where: { id } });
+export async function deleteAnnouncement(_id: number) {
+  // no-op
 }

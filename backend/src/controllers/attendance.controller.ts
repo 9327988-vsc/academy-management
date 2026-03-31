@@ -14,7 +14,7 @@ export async function bulkCreate(req: AuthRequest, res: Response, next: NextFunc
 
 export async function updateAttendance(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const result = await attendanceService.updateAttendance(req.params.id, req.user!.userId, req.body);
+    const result = await attendanceService.updateAttendance(parseInt(req.params.id), req.user!.userId, req.body);
     res.json({ success: true, data: result });
   } catch (err: any) {
     if (err.status) { res.status(err.status).json({ success: false, message: err.message }); return; }
@@ -22,9 +22,10 @@ export async function updateAttendance(req: AuthRequest, res: Response, next: Ne
   }
 }
 
-export async function getSessionAttendance(req: AuthRequest, res: Response, next: NextFunction) {
+export async function getClassAttendance(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const result = await attendanceService.getSessionAttendance(req.params.id, req.user!.userId);
+    const date = req.query.date as string | undefined;
+    const result = await attendanceService.getClassAttendance(parseInt(req.params.id), req.user!.userId, date);
     res.json({ success: true, data: result });
   } catch (err: any) {
     if (err.status) { res.status(err.status).json({ success: false, message: err.message }); return; }

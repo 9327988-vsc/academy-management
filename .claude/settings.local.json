@@ -32,7 +32,8 @@
       "Bash(git commit -m \"backup: Before complete system redesign:*)",
       "Bash(git checkout:*)",
       "Bash(cd backend:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

@@ -33,15 +33,7 @@ router.patch(
 );
 router.delete('/:id', studentController.deleteStudent);
 
-router.post(
-  '/:id/parents',
-  [
-    body('name').isLength({ min: 1, max: 50 }).withMessage('이름을 입력해주세요.').trim(),
-    body('phone').notEmpty().withMessage('전화번호를 입력해주세요.').trim(),
-    body('relationship').notEmpty().withMessage('관계를 입력해주세요.'),
-  ],
-  validate,
-  studentController.addParent,
-);
+// addParent는 v2에서 Student.parentId로 직접 연결
+// 별도 API는 향후 추가 예정
 
 export default router;

@@ -1,21 +1,23 @@
 import prisma from '../utils/prisma';
 
 export async function getChildrenByParentPhone(phone: string) {
-  const parentRecords = await prisma.parent.findMany({
+  // Find parent by phone
+  const parent = await prisma.parent.findUnique({
     where: { phone },
     include: {
-      student: {
+      students: {
         include: {
-          classes: {
+          enrollments: {
+            where: { status: 'ACTIVE' },
             include: {
-              class: { select: { id: true, name: true, subject: true, dayOfWeek: true, startTime: true, endTime: true } },
+              class: { select: { id: true, name: true, subject: true, schedule: true } },
             },
           },
-          attendance: {
-            orderBy: { checkTime: 'desc' },
+          attendances: {
+            orderBy: { date: 'desc' },
             take: 20,
             include: {
-              session: { select: { sessionDate: true, class: { select: { name: true } } } },
+              class: { select: { name: true } },
             },
           },
         },
@@ -23,10 +25,11 @@ export async function getChildrenByParentPhone(phone: string) {
     },
   });
 
-  return parentRecords.map((p) => {
-    const s = p.student;
-    const totalAttendance = s.attendance.length;
-    const presentCount = s.attendance.filter((a) => a.status === 'present').length;
+  if (!parent) return [];
+
+  return parent.students.map((s) => {
+    const totalAttendance = s.attendances.length;
+    const presentCount = s.attendances.filter((a) => a.status === 'PRESENT').length;
     const attendanceRate = totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : 0;
 
     return {
@@ -37,17 +40,15 @@ export async function getChildrenByParentPhone(phone: string) {
       phone: s.phone,
       attendanceRate,
       totalClasses: totalAttendance,
-      classes: s.classes.map((cs) => ({
-        id: cs.class.id,
-        name: cs.class.name,
-        subject: cs.class.subject,
-        dayOfWeek: cs.class.dayOfWeek,
-        startTime: cs.class.startTime,
-        endTime: cs.class.endTime,
+      classes: s.enrollments.map((e) => ({
+        id: e.class.id,
+        name: e.class.name,
+        subject: e.class.subject,
+        schedule: e.class.schedule,
       })),
-      recentAttendance: s.attendance.slice(0, 10).map((a) => ({
-        date: a.session.sessionDate,
-        className: a.session.class.name,
+      recentAttendance: s.attendances.slice(0, 10).map((a) => ({
+        date: a.date,
+        className: a.class.name,
         status: a.status,
       })),
     };

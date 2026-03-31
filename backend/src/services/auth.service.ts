@@ -7,6 +7,7 @@ export async function register(data: {
   password: string;
   name: string;
   phone: string;
+  role?: string;
 }) {
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) {
@@ -21,6 +22,7 @@ export async function register(data: {
       password: hashedPassword,
       name: data.name,
       phone: data.phone,
+      role: (data.role as any) || 'STUDENT',
     },
   });
 

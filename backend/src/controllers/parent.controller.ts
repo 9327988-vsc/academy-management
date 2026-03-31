@@ -11,7 +11,7 @@ export async function getChildren(req: AuthRequest, res: Response, next: NextFun
       return;
     }
 
-    const children = await parentService.getChildrenByParentPhone(user.phone);
+    const children = await parentService.getChildrenByParentPhone(user.phone || '');
     res.json({ success: true, data: { children } });
   } catch (err) {
     next(err);

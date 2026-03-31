@@ -28,7 +28,7 @@ export async function createAnnouncement(req: AuthRequest, res: Response, next: 
 
 export async function updateAnnouncement(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
     const { title, content, important } = req.body;
     const announcement = await announcementService.updateAnnouncement(id, { title, content, important });
     res.json({ success: true, data: announcement });
@@ -39,7 +39,7 @@ export async function updateAnnouncement(req: AuthRequest, res: Response, next: 
 
 export async function deleteAnnouncement(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = parseInt(req.params.id);
     await announcementService.deleteAnnouncement(id);
     res.json({ success: true, message: '공지가 삭제되었습니다.' });
   } catch (err) {

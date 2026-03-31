@@ -1,44 +1,48 @@
 import prisma from '../utils/prisma';
 
-export async function getStats(teacherId: string) {
-  const today = new Date();
-  const dayMap: Record<number, string> = {
-    0: '일', 1: '월', 2: '화', 3: '수', 4: '목', 5: '금', 6: '토',
-  };
-  const todayDay = dayMap[today.getDay()];
-
-  const [allClasses, totalStudents, recentSessions] = await Promise.all([
-    prisma.class.findMany({
-      where: { teacherId },
-      select: { id: true, name: true, dayOfWeek: true, startTime: true, endTime: true },
+export async function getStats(teacherId: number) {
+  const [teacher, totalEnrollments] = await Promise.all([
+    prisma.teacher.findUnique({
+      where: { id: teacherId },
+      include: {
+        classes: {
+          where: { status: 'ACTIVE' },
+          include: {
+            enrollments: { where: { status: 'ACTIVE' } },
+          },
+        },
+      },
     }),
-    prisma.student.count({ where: { teacherId } }),
-    prisma.classSession.findMany({
-      where: { class: { teacherId } },
-      include: { class: { select: { id: true, name: true } } },
-      orderBy: { sessionDate: 'desc' },
-      take: 5,
+    prisma.enrollment.count({
+      where: {
+        status: 'ACTIVE',
+        class: { teacherId },
+      },
     }),
   ]);
 
-  const todayClasses = allClasses.filter((c) => c.dayOfWeek.includes(todayDay));
+  if (!teacher) {
+    return {
+      todayClasses: 0,
+      totalStudents: 0,
+      totalClasses: 0,
+      todayClassList: [],
+      recentAttendance: [],
+    };
+  }
+
+  const allClasses = teacher.classes;
 
   return {
-    todayClasses: todayClasses.length,
-    totalStudents,
+    todayClasses: allClasses.length,
+    totalStudents: totalEnrollments,
     totalClasses: allClasses.length,
-    todayClassList: todayClasses.map((c) => ({
+    todayClassList: allClasses.map((c) => ({
       id: c.id,
       name: c.name,
-      startTime: c.startTime,
-      endTime: c.endTime,
+      schedule: c.schedule,
+      currentStudents: c.enrollments.length,
     })),
-    recentSessions: recentSessions.map((s) => ({
-      id: s.id,
-      classId: s.class.id,
-      className: s.class.name,
-      sessionDate: s.sessionDate,
-      notificationSent: s.notificationSent,
-    })),
+    recentAttendance: [],
   };
 }

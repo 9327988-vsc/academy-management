@@ -1,34 +1,41 @@
 import { AttendanceStatus } from '@prisma/client';
 import prisma from '../utils/prisma';
 
-export async function bulkCreate(teacherId: string, data: {
-  sessionId: string;
-  attendance: { studentId: string; status: AttendanceStatus; notes?: string }[];
+export async function bulkCreate(teacherId: number, data: {
+  classId: number;
+  date: string;
+  attendance: { studentId: number; status: AttendanceStatus; note?: string }[];
 }) {
-  const session = await prisma.classSession.findFirst({
-    where: { id: data.sessionId },
-    include: { class: { select: { teacherId: true } } },
+  // Verify teacher owns this class
+  const cls = await prisma.class.findFirst({
+    where: { id: data.classId, teacherId },
   });
 
-  if (!session || session.class.teacherId !== teacherId) {
-    throw Object.assign(new Error('세션을 찾을 수 없습니다.'), { status: 404 });
+  if (!cls) {
+    throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
   }
+
+  const attendanceDate = new Date(data.date);
 
   const results = await prisma.$transaction(
     data.attendance.map((a) =>
       prisma.attendance.upsert({
         where: {
-          unique_attendance: {
-            sessionId: data.sessionId,
+          studentId_classId_date: {
             studentId: a.studentId,
+            classId: data.classId,
+            date: attendanceDate,
           },
         },
-        update: { status: a.status, notes: a.notes || null },
+        update: { status: a.status, note: a.note || null },
         create: {
-          sessionId: data.sessionId,
           studentId: a.studentId,
+          classId: data.classId,
+          date: attendanceDate,
           status: a.status,
-          notes: a.notes || null,
+          note: a.note || null,
+          checkInTime: new Date(),
+          recordedBy: String(teacherId),
         },
       }),
     ),
@@ -37,58 +44,67 @@ export async function bulkCreate(teacherId: string, data: {
   return { count: results.length };
 }
 
-export async function updateAttendance(attendanceId: string, teacherId: string, data: {
+export async function updateAttendance(attendanceId: number, teacherId: number, data: {
   status: AttendanceStatus;
-  notes?: string;
+  note?: string;
 }) {
   const attendance = await prisma.attendance.findFirst({
     where: { id: attendanceId },
-    include: { session: { include: { class: { select: { teacherId: true } } } } },
+    include: { class: { select: { teacherId: true } } },
   });
 
-  if (!attendance || attendance.session.class.teacherId !== teacherId) {
+  if (!attendance || attendance.class.teacherId !== teacherId) {
     throw Object.assign(new Error('출석 기록을 찾을 수 없습니다.'), { status: 404 });
   }
 
   return prisma.attendance.update({
     where: { id: attendanceId },
-    data: { status: data.status, notes: data.notes || null },
+    data: { status: data.status, note: data.note || null },
   });
 }
 
-export async function getSessionAttendance(sessionId: string, teacherId: string) {
-  const session = await prisma.classSession.findFirst({
-    where: { id: sessionId },
-    include: { class: { select: { teacherId: true } } },
+export async function getClassAttendance(classId: number, teacherId: number, date?: string) {
+  const cls = await prisma.class.findFirst({
+    where: { id: classId, teacherId },
   });
 
-  if (!session || session.class.teacherId !== teacherId) {
-    throw Object.assign(new Error('세션을 찾을 수 없습니다.'), { status: 404 });
+  if (!cls) {
+    throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
+  }
+
+  const where: any = { classId };
+  if (date) {
+    const targetDate = new Date(date);
+    where.date = {
+      gte: new Date(targetDate.setHours(0, 0, 0, 0)),
+      lt: new Date(targetDate.setHours(23, 59, 59, 999)),
+    };
   }
 
   const attendance = await prisma.attendance.findMany({
-    where: { sessionId },
+    where,
     include: { student: { select: { id: true, name: true } } },
     orderBy: { student: { name: 'asc' } },
   });
 
   const stats = {
-    present: attendance.filter((a) => a.status === 'present').length,
-    absent: attendance.filter((a) => a.status === 'absent').length,
-    late: attendance.filter((a) => a.status === 'late').length,
+    present: attendance.filter((a) => a.status === 'PRESENT').length,
+    absent: attendance.filter((a) => a.status === 'ABSENT').length,
+    late: attendance.filter((a) => a.status === 'LATE').length,
+    excused: attendance.filter((a) => a.status === 'EXCUSED').length,
     total: attendance.length,
   };
 
   return {
-    sessionId,
-    sessionDate: session.sessionDate,
+    classId,
+    date,
     attendance: attendance.map((a) => ({
       id: a.id,
       studentId: a.student.id,
       studentName: a.student.name,
       status: a.status,
-      checkTime: a.checkTime,
-      notes: a.notes,
+      checkInTime: a.checkInTime,
+      note: a.note,
     })),
     stats,
   };

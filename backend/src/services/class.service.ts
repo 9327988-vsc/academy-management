@@ -1,180 +1,209 @@
-import prisma from '../utils/prisma';
+import { PrismaClient, Prisma } from '@prisma/client';
+import {
+  ClassWithDetails,
+  SearchParams,
+  PaginatedResponse,
+} from '../types/api.types';
+import {
+  calculatePagination,
+  buildSearchFilter,
+} from '../utils/query.utils';
 
-export async function getClasses(teacherId: string, date?: string) {
-  const where: any = { teacherId };
+const prisma = new PrismaClient();
 
-  if (date) {
-    const dayMap: Record<string, string> = {
-      '0': '일', '1': '월', '2': '화', '3': '수', '4': '목', '5': '금', '6': '토',
-    };
-    const dayOfWeek = dayMap[new Date(date).getDay().toString()];
-    if (dayOfWeek) {
-      where.dayOfWeek = { contains: dayOfWeek };
-    }
-  }
+// 수업 목록 조회
+export async function getClasses(params: SearchParams = {}) {
+  const { page = 1, pageSize = 20, query, sortBy = 'name', sortOrder = 'asc' } = params;
+  const { skip, take } = calculatePagination(page, pageSize);
 
-  const classes = await prisma.class.findMany({
-    where,
-    include: { _count: { select: { students: true } } },
-    orderBy: { startTime: 'asc' },
-  });
+  const where: Prisma.ClassWhereInput = {
+    ...buildSearchFilter(['name', 'subject', 'room'], query),
+  };
 
-  return classes.map((c) => ({
-    id: c.id,
-    name: c.name,
-    subject: c.subject,
-    dayOfWeek: c.dayOfWeek,
-    startTime: c.startTime,
-    endTime: c.endTime,
-    room: c.room,
-    maxStudents: c.maxStudents,
-    studentCount: c._count.students,
-    createdAt: c.createdAt,
-  }));
+  const [classes, total] = await Promise.all([
+    prisma.class.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { [sortBy]: sortOrder },
+      include: {
+        teacher: {
+          include: { user: true },
+        },
+        enrollments: {
+          where: { status: 'ACTIVE' },
+          include: { student: true },
+        },
+      },
+    }),
+    prisma.class.count({ where }),
+  ]);
+
+  const result: PaginatedResponse<ClassWithDetails> = {
+    items: classes.map(c => ({
+      id: c.id,
+      name: c.name,
+      subject: c.subject,
+      teacher: {
+        id: c.teacher.id,
+        name: c.teacher.user.name,
+      },
+      schedule: c.schedule,
+      startDate: c.startDate,
+      endDate: c.endDate,
+      room: c.room || undefined,
+      capacity: c.capacity,
+      currentStudents: c.enrollments.length,
+      tuitionFee: c.tuitionFee,
+      status: c.status,
+      enrollments: c.enrollments,
+    })),
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  };
+
+  return result;
 }
 
-export async function getClassById(classId: string, teacherId: string) {
-  const cls = await prisma.class.findFirst({
-    where: { id: classId, teacherId },
+// 수업 상세 조회
+export async function getClassById(id: number): Promise<ClassWithDetails | null> {
+  const cls = await prisma.class.findUnique({
+    where: { id },
     include: {
-      teacher: { select: { id: true, name: true, phone: true } },
-      students: {
+      teacher: {
+        include: { user: true },
+      },
+      enrollments: {
         include: {
           student: {
-            include: { parents: true },
+            include: { parent: true },
+          },
+        },
+      },
+      schedules: {
+        orderBy: { date: 'asc' },
+        take: 20,
+      },
+      attendances: {
+        orderBy: { date: 'desc' },
+        take: 50,
+      },
+    },
+  });
+
+  if (!cls) return null;
+
+  return {
+    id: cls.id,
+    name: cls.name,
+    subject: cls.subject,
+    teacher: {
+      id: cls.teacher.id,
+      name: cls.teacher.user.name,
+    },
+    schedule: cls.schedule,
+    startDate: cls.startDate,
+    endDate: cls.endDate,
+    room: cls.room || undefined,
+    capacity: cls.capacity,
+    currentStudents: cls.enrollments.filter(e => e.status === 'ACTIVE').length,
+    tuitionFee: cls.tuitionFee,
+    status: cls.status,
+    enrollments: cls.enrollments,
+  };
+}
+
+// 수업 생성
+export async function createClass(data: {
+  name: string;
+  subject: string;
+  description?: string;
+  teacherId: number;
+  schedule: string;
+  startDate: Date;
+  endDate: Date;
+  room?: string;
+  capacity?: number;
+  tuitionFee: number;
+}) {
+  return await prisma.class.create({
+    data,
+    include: {
+      teacher: { include: { user: true } },
+    },
+  });
+}
+
+// 수업 수정
+export async function updateClass(
+  id: number,
+  data: Partial<{
+    name: string;
+    subject: string;
+    description: string;
+    teacherId: number;
+    schedule: string;
+    startDate: Date;
+    endDate: Date;
+    room: string;
+    capacity: number;
+    tuitionFee: number;
+    status: string;
+  }>
+) {
+  return await prisma.class.update({
+    where: { id },
+    data: data as any,
+    include: {
+      teacher: { include: { user: true } },
+    },
+  });
+}
+
+// 수업 삭제
+export async function deleteClass(id: number) {
+  return await prisma.class.delete({ where: { id } });
+}
+
+// 수업별 학생 목록
+export async function getClassStudents(classId: number) {
+  const enrollments = await prisma.enrollment.findMany({
+    where: {
+      classId,
+      status: 'ACTIVE',
+    },
+    include: {
+      student: {
+        include: {
+          parent: true,
+          attendances: {
+            where: { classId },
+            orderBy: { date: 'desc' },
+            take: 10,
           },
         },
       },
     },
   });
 
-  if (!cls) {
-    throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
-  }
-
-  return {
-    id: cls.id,
-    name: cls.name,
-    subject: cls.subject,
-    dayOfWeek: cls.dayOfWeek,
-    startTime: cls.startTime,
-    endTime: cls.endTime,
-    room: cls.room,
-    maxStudents: cls.maxStudents,
-    teacher: cls.teacher,
-    students: cls.students.map((cs) => ({
-      id: cs.student.id,
-      name: cs.student.name,
-      phone: cs.student.phone,
-      grade: cs.student.grade,
-      school: cs.student.school,
-      enrolledAt: cs.enrolledAt,
-      parents: cs.student.parents.map((p) => ({
-        id: p.id,
-        name: p.name,
-        phone: p.phone,
-        relationship: p.relationship,
-      })),
-    })),
-  };
+  return enrollments.map(e => e.student);
 }
 
-export async function createClass(teacherId: string, data: {
-  name: string;
-  subject: string;
-  dayOfWeek: string;
-  startTime: string;
-  endTime: string;
-  room?: string;
-  maxStudents?: number;
-}) {
-  return prisma.class.create({
-    data: { ...data, teacherId },
-  });
-}
-
-export async function updateClass(classId: string, teacherId: string, data: Record<string, any>) {
-  const cls = await prisma.class.findFirst({ where: { id: classId, teacherId } });
-  if (!cls) {
-    throw Object.assign(new Error('수업을 찾을 수 없거나 수정 권한이 없습니다.'), { status: 403 });
-  }
-
-  return prisma.class.update({ where: { id: classId }, data });
-}
-
-export async function deleteClass(classId: string, teacherId: string) {
-  const cls = await prisma.class.findFirst({ where: { id: classId, teacherId } });
-  if (!cls) {
-    throw Object.assign(new Error('수업을 찾을 수 없거나 삭제 권한이 없습니다.'), { status: 403 });
-  }
-
-  await prisma.class.delete({ where: { id: classId } });
-}
-
-export async function getClassStudents(classId: string, teacherId: string) {
-  const cls = await prisma.class.findFirst({ where: { id: classId, teacherId } });
-  if (!cls) {
-    throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
-  }
-
-  const enrollments = await prisma.classStudent.findMany({
-    where: { classId },
-    include: {
-      student: {
-        include: { parents: true },
+// 수업별 출석 현황
+export async function getClassAttendance(classId: number, date: Date) {
+  return await prisma.attendance.findMany({
+    where: {
+      classId,
+      date: {
+        gte: new Date(date.setHours(0, 0, 0, 0)),
+        lt: new Date(date.setHours(23, 59, 59, 999)),
       },
     },
-  });
-
-  return enrollments.map((e) => ({
-    id: e.student.id,
-    name: e.student.name,
-    phone: e.student.phone,
-    grade: e.student.grade,
-    school: e.student.school,
-    enrolledAt: e.enrolledAt,
-    parents: e.student.parents.map((p) => ({
-      id: p.id,
-      name: p.name,
-      phone: p.phone,
-      relationship: p.relationship,
-    })),
-  }));
-}
-
-export async function enrollStudent(classId: string, studentId: string, teacherId: string) {
-  const cls = await prisma.class.findFirst({
-    where: { id: classId, teacherId },
-    include: { _count: { select: { students: true } } },
-  });
-
-  if (!cls) {
-    throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
-  }
-
-  if (cls._count.students >= cls.maxStudents) {
-    throw Object.assign(new Error('수업 정원이 가득 찼습니다.'), { status: 400 });
-  }
-
-  try {
-    await prisma.classStudent.create({
-      data: { classId, studentId },
-    });
-  } catch (err: any) {
-    if (err.code === 'P2002') {
-      throw Object.assign(new Error('이미 등록된 학생입니다.'), { status: 409 });
-    }
-    throw err;
-  }
-}
-
-export async function unenrollStudent(classId: string, studentId: string, teacherId: string) {
-  const cls = await prisma.class.findFirst({ where: { id: classId, teacherId } });
-  if (!cls) {
-    throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
-  }
-
-  await prisma.classStudent.deleteMany({
-    where: { classId, studentId },
+    include: {
+      student: true,
+    },
+    orderBy: { student: { name: 'asc' } },
   });
 }

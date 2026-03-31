@@ -8,7 +8,7 @@ const JWT_SECRET: string = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET: string = process.env.JWT_REFRESH_SECRET;
 
 interface TokenPayload {
-  userId: string;
+  userId: number;
   email: string;
   role: string;
 }
