@@ -5,7 +5,14 @@ import { loginApi } from '@/api/auth.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+const TEST_ACCOUNTS = [
+  { email: 'admin@academy.com', password: 'admin1234', label: '관리자', role: 'ADMIN' },
+  { email: 'teacher@academy.com', password: 'test1234', label: '선생님', role: 'TEACHER' },
+  { email: 'parent@test.com', password: 'parent1234', label: '학부모', role: 'PARENT' },
+  { email: 'student@test.com', password: 'student1234', label: '학생', role: 'STUDENT' },
+];
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,27 +22,22 @@ export default function LoginPage() {
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const doLogin = async (loginEmail: string, loginPassword: string) => {
     setError('');
     setLoading(true);
 
     try {
-      console.log('[Login] 로그인 시도:', email);
-      const res = await loginApi(email, password);
-      console.log('[Login] 응답:', JSON.stringify(res, null, 2));
+      console.log('[Login] 시도:', loginEmail);
+      const res = await loginApi(loginEmail, loginPassword);
+      console.log('[Login] 응답:', res);
 
       if (res.success) {
-        console.log('[Login] 사용자:', res.user);
-        console.log('[Login] 토큰:', res.accessToken?.substring(0, 20) + '...');
         setAuth(res.user, res.accessToken, res.refreshToken);
         const dest = res.user.role === 'PARENT' ? '/parent/dashboard'
           : res.user.role === 'STUDENT' ? '/student/dashboard'
           : '/dashboard';
-        console.log('[Login] 이동:', dest);
         navigate(dest);
       } else {
-        console.error('[Login] success=false:', res);
         setError(res.message || '로그인에 실패했습니다.');
       }
     } catch (err: unknown) {
@@ -47,15 +49,57 @@ export default function LoginPage() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await doLogin(email, password);
+  };
+
+  const handleQuickLogin = async (account: typeof TEST_ACCOUNTS[0]) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    await doLogin(account.email, account.password);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">
             A
           </div>
           <h1 className="text-2xl font-bold tracking-tight">학원 관리 시스템</h1>
           <p className="mt-1 text-sm text-muted-foreground">계정으로 로그인하세요</p>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">빠른 로그인</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 gap-2">
+              {TEST_ACCOUNTS.map((account) => (
+                <Button
+                  key={account.email}
+                  variant="outline"
+                  onClick={() => handleQuickLogin(account)}
+                  disabled={loading}
+                  className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-accent"
+                >
+                  <span className="font-semibold text-sm">{account.label}</span>
+                  <span className="text-[10px] text-muted-foreground">{account.email}</span>
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">또는 직접 입력</span>
+          </div>
         </div>
 
         <Card>
@@ -71,6 +115,7 @@ export default function LoginPage() {
                   placeholder="admin@academy.com"
                   autoComplete="email"
                   required
+                  disabled={loading}
                 />
               </div>
               <div className="space-y-2">
@@ -83,6 +128,7 @@ export default function LoginPage() {
                   placeholder="비밀번호 입력"
                   autoComplete="current-password"
                   required
+                  disabled={loading}
                 />
               </div>
 

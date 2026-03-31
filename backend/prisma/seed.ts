@@ -32,18 +32,43 @@ async function main() {
     data: {
       email: 'admin@academy.com',
       password: await bcrypt.hash('admin1234', 10),
-      name: '학원장',
+      name: '관리자',
       role: 'ADMIN',
       phone: '010-1234-5678',
     },
   });
   console.log('✅ 관리자 생성:', adminUser.name);
 
-  // 2. 강사 20명
+  // 2. 강사 20명 (첫 번째는 표준 테스트 계정)
   const teachers = [];
   const subjects = ['수학', '영어', '과학', '국어', '사회'];
 
-  for (let i = 1; i <= 20; i++) {
+  // 표준 테스트 강사
+  const teacher1User = await prisma.user.create({
+    data: {
+      email: 'teacher@academy.com',
+      password: hashedPassword,
+      name: '선생님',
+      role: 'TEACHER',
+      phone: '010-2000-0001',
+    },
+  });
+  const teacher1 = await prisma.teacher.create({
+    data: {
+      userId: teacher1User.id,
+      phone: teacher1User.phone!,
+      email: teacher1User.email,
+      education: '서울대 수학교육과 졸업',
+      career: '5년차 경력. 학원 강의 전문.',
+      subjects: ['수학', '영어'],
+      introduction: '안녕하세요. 수학 전문 강사입니다.',
+      employmentType: '정규직',
+      salary: 3100000,
+    },
+  });
+  teachers.push(teacher1);
+
+  for (let i = 2; i <= 20; i++) {
     const teacherUser = await prisma.user.create({
       data: {
         email: `teacher${i}@academy.com`,
@@ -73,9 +98,31 @@ async function main() {
   }
   console.log(`✅ 강사 20명 생성`);
 
-  // 3. 학부모 50명
+  // 3. 학부모 50명 (첫 번째는 표준 테스트 계정)
   const parents = [];
-  for (let i = 1; i <= 50; i++) {
+
+  // 표준 테스트 학부모
+  const parent1User = await prisma.user.create({
+    data: {
+      email: 'parent@test.com',
+      password: await bcrypt.hash('parent1234', 10),
+      name: '학부모',
+      role: 'PARENT',
+      phone: '010-3000-0001',
+    },
+  });
+  const parent1 = await prisma.parent.create({
+    data: {
+      userId: parent1User.id,
+      name: parent1User.name,
+      phone: parent1User.phone!,
+      email: parent1User.email,
+      relation: '모',
+    },
+  });
+  parents.push(parent1);
+
+  for (let i = 2; i <= 50; i++) {
     const parentUser = await prisma.user.create({
       data: {
         email: `parent${i}@test.com`,
@@ -100,11 +147,34 @@ async function main() {
   }
   console.log(`✅ 학부모 50명 생성`);
 
-  // 4. 학생 250명
+  // 4. 학생 250명 (첫 번째는 표준 테스트 계정)
   const students = [];
   const grades = ['초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3'];
 
-  for (let i = 1; i <= 250; i++) {
+  // 표준 테스트 학생
+  const student1User = await prisma.user.create({
+    data: {
+      email: 'student@test.com',
+      password: await bcrypt.hash('student1234', 10),
+      name: '학생',
+      role: 'STUDENT',
+      phone: '010-4000-0001',
+    },
+  });
+  const student1 = await prisma.student.create({
+    data: {
+      userId: student1User.id,
+      name: student1User.name,
+      phone: student1User.phone!,
+      grade: '중1',
+      school: '서울중학교',
+      parentId: parent1.id,
+      status: 'ACTIVE',
+    },
+  });
+  students.push(student1);
+
+  for (let i = 2; i <= 250; i++) {
     const studentUser = await prisma.user.create({
       data: {
         email: `student${i}@test.com`,
