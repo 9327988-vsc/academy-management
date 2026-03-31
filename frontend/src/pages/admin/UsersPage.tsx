@@ -90,7 +90,7 @@ export default function UsersPage() {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
+  const handleRoleChange = async (userId: number, newRole: string) => {
     try {
       await updateUserRoleApi(userId, newRole);
       toast.success('역할이 변경되었습니다.');
@@ -100,7 +100,7 @@ export default function UsersPage() {
     }
   };
 
-  const handleDelete = async (userId: string) => {
+  const handleDelete = async (userId: number) => {
     try {
       await deleteUserApi(userId);
       toast.success('사용자가 삭제되었습니다.');
@@ -179,10 +179,10 @@ export default function UsersPage() {
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="student">학생</option>
-                <option value="parent">학부모</option>
-                <option value="teacher">선생님</option>
-                <option value="principal">관리자</option>
+                <option value="STUDENT">학생</option>
+                <option value="PARENT">학부모</option>
+                <option value="TEACHER">선생님</option>
+                <option value="ADMIN">관리자</option>
               </select>
             </div>
             <div className="space-y-1.5">
