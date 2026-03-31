@@ -1,14 +1,25 @@
 import { AttendanceStatus } from '@prisma/client';
 import prisma from '../utils/prisma';
 
-export async function bulkCreate(teacherId: number, data: {
+// userId로 teacherId 조회하는 헬퍼
+async function resolveTeacherId(userId: number): Promise<number | null> {
+  const teacher = await prisma.teacher.findUnique({ where: { userId } });
+  return teacher?.id || null;
+}
+
+export async function bulkCreate(userId: number, data: {
   classId: number;
   date: string;
   attendance: { studentId: number; status: AttendanceStatus; note?: string }[];
 }) {
-  // Verify teacher owns this class
+  const teacherId = await resolveTeacherId(userId);
+
+  // Verify teacher owns this class (or is admin)
   const cls = await prisma.class.findFirst({
-    where: { id: data.classId, teacherId },
+    where: {
+      id: data.classId,
+      ...(teacherId ? { teacherId } : {}),
+    },
   });
 
   if (!cls) {
@@ -35,7 +46,7 @@ export async function bulkCreate(teacherId: number, data: {
           status: a.status,
           note: a.note || null,
           checkInTime: new Date(),
-          recordedBy: String(teacherId),
+          recordedBy: String(userId),
         },
       }),
     ),
@@ -44,16 +55,18 @@ export async function bulkCreate(teacherId: number, data: {
   return { count: results.length };
 }
 
-export async function updateAttendance(attendanceId: number, teacherId: number, data: {
+export async function updateAttendance(attendanceId: number, userId: number, data: {
   status: AttendanceStatus;
   note?: string;
 }) {
+  const teacherId = await resolveTeacherId(userId);
+
   const attendance = await prisma.attendance.findFirst({
     where: { id: attendanceId },
     include: { class: { select: { teacherId: true } } },
   });
 
-  if (!attendance || attendance.class.teacherId !== teacherId) {
+  if (!attendance || (teacherId && attendance.class.teacherId !== teacherId)) {
     throw Object.assign(new Error('출석 기록을 찾을 수 없습니다.'), { status: 404 });
   }
 
@@ -63,9 +76,14 @@ export async function updateAttendance(attendanceId: number, teacherId: number, 
   });
 }
 
-export async function getClassAttendance(classId: number, teacherId: number, date?: string) {
+export async function getClassAttendance(classId: number, userId: number, date?: string) {
+  const teacherId = await resolveTeacherId(userId);
+
   const cls = await prisma.class.findFirst({
-    where: { id: classId, teacherId },
+    where: {
+      id: classId,
+      ...(teacherId ? { teacherId } : {}),
+    },
   });
 
   if (!cls) {

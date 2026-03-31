@@ -35,7 +35,8 @@
       "Bash(cd:*)",
       "Bash(git commit:*)",
       "Bash(find C:/프로젝트/01-학생관리/frontend/src -name AuthContext* -o -name Login* -o -name Dashboard*)",
-      "Bash(find C:/프로젝트/01-학생관리/frontend/src -name *.tsx -o -name *.ts)"
+      "Bash(find C:/프로젝트/01-학생관리/frontend/src -name *.tsx -o -name *.ts)",
+      "Bash(grep -E \"\\\\.\\(ts|js\\)$\")"
     ]
   }
 }

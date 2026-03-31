@@ -1,14 +1,25 @@
 import prisma from '../utils/prisma';
 
+// userId로 teacherId 조회
+async function resolveTeacherId(userId: number): Promise<number | null> {
+  const teacher = await prisma.teacher.findUnique({ where: { userId } });
+  return teacher?.id || null;
+}
+
 // ClassSession → ClassSchedule 로 변경
-export async function createSession(teacherId: number, data: {
+export async function createSession(userId: number, data: {
   classId: number;
   date: string;
   startTime: string;
   endTime: string;
 }) {
+  const teacherId = await resolveTeacherId(userId);
+
   const cls = await prisma.class.findFirst({
-    where: { id: data.classId, teacherId },
+    where: {
+      id: data.classId,
+      ...(teacherId ? { teacherId } : {}),
+    },
   });
   if (!cls) {
     throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
@@ -25,7 +36,9 @@ export async function createSession(teacherId: number, data: {
   });
 }
 
-export async function getSessionById(sessionId: number, teacherId: number) {
+export async function getSessionById(sessionId: number, userId: number) {
+  const teacherId = await resolveTeacherId(userId);
+
   const schedule = await prisma.classSchedule.findFirst({
     where: { id: sessionId },
     include: {
@@ -35,7 +48,7 @@ export async function getSessionById(sessionId: number, teacherId: number) {
     },
   });
 
-  if (!schedule || schedule.class.teacherId !== teacherId) {
+  if (!schedule || (teacherId && schedule.class.teacherId !== teacherId)) {
     throw Object.assign(new Error('일정을 찾을 수 없습니다.'), { status: 404 });
   }
 
@@ -45,9 +58,14 @@ export async function getSessionById(sessionId: number, teacherId: number) {
   };
 }
 
-export async function getClassSessions(classId: number, teacherId: number, limit = 10, offset = 0) {
+export async function getClassSessions(classId: number, userId: number, limit = 10, offset = 0) {
+  const teacherId = await resolveTeacherId(userId);
+
   const cls = await prisma.class.findFirst({
-    where: { id: classId, teacherId },
+    where: {
+      id: classId,
+      ...(teacherId ? { teacherId } : {}),
+    },
   });
   if (!cls) {
     throw Object.assign(new Error('수업을 찾을 수 없습니다.'), { status: 404 });
