@@ -1,5 +1,6 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { ApiResponse } from '@/types/api.types';
+import axios from 'axios';
+import type { AxiosInstance, AxiosRequestConfig } from 'axios';
+import type { ApiResponse } from '@/types/api.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 

@@ -1,5 +1,5 @@
 import { apiClient } from './api.client';
-import {
+import type {
   Class,
   ClassWithDetails,
   PaginatedResponse,

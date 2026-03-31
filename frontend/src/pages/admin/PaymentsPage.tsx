@@ -15,15 +15,15 @@ import { toast } from 'sonner';
 import { CreditCard, TrendingUp, AlertTriangle, CheckCircle, Trash2, Plus } from 'lucide-react';
 
 interface PaymentItem {
-  id: string;
-  studentId: string;
+  id: number;
+  studentId: number;
   amount: number;
   month: string;
   status: string;
   paidAt: string | null;
   description: string | null;
   createdAt: string;
-  student: { id: string; name: string; grade: string | null };
+  student: { id: number; name: string; grade: string | null };
 }
 
 interface PaymentStats {
@@ -67,7 +67,7 @@ export default function PaymentsPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleStatusChange = async (id: string, status: string) => {
+  const handleStatusChange = async (id: number, status: string) => {
     try {
       await updatePaymentStatusApi(id, status);
       toast.success('결제 상태가 변경되었습니다.');
@@ -77,7 +77,7 @@ export default function PaymentsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await deletePaymentApi(id);
       toast.success('결제 내역이 삭제되었습니다.');
@@ -94,7 +94,7 @@ export default function PaymentsPage() {
     }
     try {
       await createPaymentApi({
-        studentId: newPayment.studentId,
+        studentId: parseInt(newPayment.studentId),
         amount: parseInt(newPayment.amount),
         month: newPayment.month,
         description: newPayment.description || undefined,

@@ -1,5 +1,5 @@
 import { apiClient } from './api.client';
-import { LoginResponse, User } from '@/types/api.types';
+import type { LoginResponse, User } from '@/types/api.types';
 
 export interface LoginRequest {
   email: string;

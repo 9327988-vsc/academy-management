@@ -15,19 +15,19 @@ import { toast } from 'sonner';
 import { Megaphone, Plus, Trash2, Pencil, Star } from 'lucide-react';
 
 interface Announcement {
-  id: string;
+  id: number;
   title: string;
   content: string;
   important: boolean;
   createdAt: string;
-  author: { id: string; name: string };
+  author: { id: number; name: string };
 }
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState({ title: '', content: '', important: false });
 
   const fetchData = () => {
@@ -71,7 +71,7 @@ export default function AnnouncementsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await deleteAnnouncementApi(id);
       toast.success('공지가 삭제되었습니다.');
