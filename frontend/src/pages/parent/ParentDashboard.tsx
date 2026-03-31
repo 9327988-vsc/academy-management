@@ -33,12 +33,13 @@ export default function ParentDashboard() {
   const isDevMode = user?.role === 'principal' && viewAsRole === 'parent';
 
   useEffect(() => {
+    if (!user) return; // user 로드 대기 (페이지 새로고침 시 getMeApi 완료 후 실행)
     const api = isDevMode ? getDevParentChildrenApi() : getChildrenApi();
     api
       .then((res) => { if (res.success) setChildren(res.data.children); })
       .catch(() => { toast.error('자녀 정보를 불러올 수 없습니다.'); })
       .finally(() => setLoading(false));
-  }, [isDevMode]);
+  }, [isDevMode, user]);
 
   if (loading) {
     return (
@@ -52,12 +53,22 @@ export default function ParentDashboard() {
 
   if (children.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-          <Users size={20} className="text-muted-foreground" />
+      <div className="space-y-4">
+        {isDevMode && (
+          <div className="flex items-center gap-2 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm text-yellow-800">
+            <Wrench size={14} />
+            <span className="font-medium">개발자 모드:</span> 테스트 학부모 데이터가 없습니다. seed를 실행해주세요.
+          </div>
+        )}
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <Users size={20} className="text-muted-foreground" />
+          </div>
+          <p className="mt-4 text-sm font-medium">연결된 자녀 정보가 없습니다</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {isDevMode ? 'DB에 학부모/학생 데이터가 없습니다. npx prisma db seed를 실행해주세요.' : '학원에 문의하여 계정을 연결해주세요.'}
+          </p>
         </div>
-        <p className="mt-4 text-sm font-medium">연결된 자녀 정보가 없습니다</p>
-        <p className="mt-1 text-sm text-muted-foreground">학원에 문의하여 계정을 연결해주세요.</p>
       </div>
     );
   }

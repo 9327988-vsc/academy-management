@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npm run:*)",
+      "Bash(find frontend/src -name *ErrorBoundary*)",
+      "Bash(find backend/src -name *error*)",
+      "Bash(grep -n \"router\\\\.\\\\\\(get\\\\|post\\\\|put\\\\|patch\\\\|delete\\\\\\)\" src/routes/*.ts)",
+      "Bash(npx ts-node -e \":*)",
+      "Bash(node -e \":*)",
+      "Read(//c/프로젝트/01-학생관理/frontend/src/api/**)",
+      "Read(//c/프로젝트/01-학생管理/frontend/src/api/**)",
+      "Bash(pushd \"C:/프로젝트/01-학생관리/frontend\")",
+      "Bash(popd)",
+      "Bash(railway --version)",
+      "Bash(npm list:*)",
+      "Bash(npx railway:*)",
+      "Bash(npx:*)"
+    ]
+  }
+}
