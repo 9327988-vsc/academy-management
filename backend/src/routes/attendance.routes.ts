@@ -8,7 +8,7 @@ import * as attendanceController from '../controllers/attendance.controller';
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize('teacher', 'principal'));
+router.use(authorize('TEACHER', 'ADMIN'));
 
 router.post(
   '/bulk',

@@ -1,23 +1,23 @@
 import { create } from 'zustand';
-import type { User } from '@/types';
+import type { User, Role } from '@/types/api.types';
 
 interface AuthState {
   user: User | null;
   accessToken: string | null;
   isAuthenticated: boolean;
-  viewAsRole: string | null;
+  viewAsRole: Role | null;
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   clearAuth: () => void;
   setUser: (user: User) => void;
-  setViewAsRole: (role: string | null) => void;
-  effectiveRole: () => string | null;
+  setViewAsRole: (role: Role | null) => void;
+  effectiveRole: () => Role | null;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   accessToken: localStorage.getItem('accessToken'),
   isAuthenticated: !!localStorage.getItem('accessToken'),
-  viewAsRole: localStorage.getItem('devModeRole'),
+  viewAsRole: (localStorage.getItem('devModeRole') as Role) || null,
 
   setAuth: (user, accessToken, refreshToken) => {
     localStorage.setItem('accessToken', accessToken);

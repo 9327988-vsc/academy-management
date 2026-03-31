@@ -41,7 +41,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               {/* 선생님/관리자 라우트 */}
-              <Route element={<RoleGuard allowedRoles={['teacher', 'principal']} />}>
+              <Route element={<RoleGuard allowedRoles={['TEACHER', 'ADMIN']} />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/classes" element={<ClassListPage />} />
                 <Route path="/classes/:id" element={<ClassDetailPage />} />
@@ -51,7 +51,7 @@ export default function App() {
               </Route>
 
               {/* 관리자 전용 */}
-              <Route element={<RoleGuard allowedRoles={['principal']} />}>
+              <Route element={<RoleGuard allowedRoles={['ADMIN']} />}>
                 <Route path="/admin/settings" element={<SettingsPage />} />
                 <Route path="/admin/users" element={<UsersPage />} />
                 <Route path="/admin/payments" element={<PaymentsPage />} />
@@ -60,12 +60,12 @@ export default function App() {
               </Route>
 
               {/* 학부모 라우트 */}
-              <Route element={<RoleGuard allowedRoles={['parent']} redirectTo="/login" />}>
+              <Route element={<RoleGuard allowedRoles={['PARENT']} redirectTo="/login" />}>
                 <Route path="/parent/dashboard" element={<ParentDashboard />} />
               </Route>
 
               {/* 학생 라우트 */}
-              <Route element={<RoleGuard allowedRoles={['student']} redirectTo="/login" />}>
+              <Route element={<RoleGuard allowedRoles={['STUDENT']} redirectTo="/login" />}>
                 <Route path="/student/dashboard" element={<StudentDashboard />} />
               </Route>
             </Route>

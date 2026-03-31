@@ -8,7 +8,7 @@ import * as paymentController from '../controllers/payment.controller';
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize('principal'));
+router.use(authorize('ADMIN'));
 
 router.get('/', paymentController.listPayments);
 router.get('/stats', paymentController.getPaymentStats);

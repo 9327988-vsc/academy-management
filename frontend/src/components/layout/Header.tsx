@@ -12,14 +12,15 @@ import {
 import { logoutApi } from '@/api/auth.api';
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, BookOpen, Settings, LogOut, ChevronDown, GraduationCap, Users, UserCircle, Wrench, CreditCard, Megaphone, Activity } from 'lucide-react';
+import type { Role } from '@/types/api.types';
 
 function getNavItems(role?: string | null) {
-  if (role === 'parent') {
+  if (role === 'PARENT') {
     return [
       { to: '/parent/dashboard', label: '대시보드', icon: LayoutDashboard },
     ];
   }
-  if (role === 'student') {
+  if (role === 'STUDENT') {
     return [
       { to: '/student/dashboard', label: '대시보드', icon: GraduationCap },
     ];
@@ -28,7 +29,7 @@ function getNavItems(role?: string | null) {
     { to: '/dashboard', label: '대시보드', icon: LayoutDashboard },
     { to: '/classes', label: '수업', icon: BookOpen },
   ];
-  if (role === 'principal') {
+  if (role === 'ADMIN') {
     items.push(
       { to: '/admin/users', label: '사용자', icon: Users },
       { to: '/admin/payments', label: '결제', icon: CreditCard },
@@ -42,24 +43,25 @@ function getNavItems(role?: string | null) {
 
 function getRoleBadge(role?: string) {
   switch (role) {
-    case 'principal': return { label: '관리자', className: 'bg-amber-100 text-amber-700 border-amber-200' };
-    case 'parent': return { label: '학부모', className: 'bg-green-100 text-green-700 border-green-200' };
-    case 'student': return { label: '학생', className: 'bg-violet-100 text-violet-700 border-violet-200' };
+    case 'ADMIN': return { label: '관리자', className: 'bg-amber-100 text-amber-700 border-amber-200' };
+    case 'PARENT': return { label: '학부모', className: 'bg-green-100 text-green-700 border-green-200' };
+    case 'STUDENT': return { label: '학생', className: 'bg-violet-100 text-violet-700 border-violet-200' };
     default: return { label: '선생님', className: 'bg-blue-100 text-blue-700 border-blue-200' };
   }
 }
 
-const DEV_ROLES = [
+const DEV_ROLES: { value: Role | null; label: string; icon: any }[] = [
   { value: null, label: '관리자로 보기', icon: Settings },
-  { value: 'teacher', label: '선생님으로 보기', icon: Users },
-  { value: 'parent', label: '학부모로 보기', icon: UserCircle },
-  { value: 'student', label: '학생으로 보기', icon: GraduationCap },
-] as const;
+  { value: 'TEACHER', label: '선생님으로 보기', icon: Users },
+  { value: 'PARENT', label: '학부모로 보기', icon: UserCircle },
+  { value: 'STUDENT', label: '학생으로 보기', icon: GraduationCap },
+];
 
 const ROLE_LABEL: Record<string, string> = {
-  teacher: '선생님',
-  parent: '학부모',
-  student: '학생',
+  ADMIN: '관리자',
+  TEACHER: '선생님',
+  PARENT: '학부모',
+  STUDENT: '학생',
 };
 
 export default function Header() {
@@ -69,8 +71,8 @@ export default function Header() {
   const currentRole = effectiveRole();
   const navItems = getNavItems(currentRole);
   const roleBadge = getRoleBadge(currentRole ?? undefined);
-  const homePath = currentRole === 'parent' ? '/parent/dashboard'
-    : currentRole === 'student' ? '/student/dashboard'
+  const homePath = currentRole === 'PARENT' ? '/parent/dashboard'
+    : currentRole === 'STUDENT' ? '/student/dashboard'
     : '/dashboard';
 
   const handleLogout = async () => {
@@ -116,7 +118,7 @@ export default function Header() {
 
         <div className="flex items-center gap-2">
           {/* 개발자 모드 (관리자 전용) */}
-          {user?.role === 'principal' && (
+          {user?.role === 'ADMIN' && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-1.5 text-yellow-200 hover:bg-white/10 hover:text-yellow-100">
@@ -135,7 +137,7 @@ export default function Header() {
                     key={label}
                     onClick={() => {
                       setViewAsRole(value);
-                      navigate(value === 'parent' ? '/parent/dashboard' : value === 'student' ? '/student/dashboard' : '/dashboard');
+                      navigate(value === 'PARENT' ? '/parent/dashboard' : value === 'STUDENT' ? '/student/dashboard' : '/dashboard');
                     }}
                     className={cn(viewAsRole === value || (!viewAsRole && value === null) ? 'bg-accent' : '')}
                   >

@@ -6,7 +6,7 @@ import * as studentPortalController from '../controllers/studentPortal.controlle
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize('student'));
+router.use(authorize('STUDENT'));
 
 router.get('/dashboard', studentPortalController.getDashboard);
 

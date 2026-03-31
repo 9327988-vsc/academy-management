@@ -3,11 +3,22 @@ import { Link } from 'react-router-dom';
 import { getDashboardStatsApi } from '@/api/dashboard.api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { Calendar, Users, BookOpen, Clock, AlertCircle, ArrowRight } from 'lucide-react';
-import type { DashboardStats } from '@/types';
+
+interface DashboardData {
+  todayClasses: number;
+  totalStudents: number;
+  totalClasses: number;
+  todayClassList: {
+    id: number;
+    name: string;
+    schedule?: string;
+    currentStudents?: number;
+  }[];
+  recentAttendance: any[];
+}
 
 const STAT_CONFIG = [
   { key: 'todayClasses' as const, label: '오늘 수업', unit: '개', icon: Calendar, accent: 'bg-blue-50 text-blue-600' },
@@ -28,13 +39,12 @@ function DashboardSkeleton() {
         ))}
       </div>
       <Skeleton className="h-[240px] rounded-xl" />
-      <Skeleton className="h-[200px] rounded-xl" />
     </div>
   );
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [stats, setStats] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -92,11 +102,11 @@ export default function DashboardPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base">오늘의 수업</CardTitle>
+              <CardTitle className="text-base">수업 현황</CardTitle>
               <CardDescription className="mt-1">
                 {stats.todayClassList.length > 0
-                  ? `${stats.todayClassList.length}개의 수업이 예정되어 있습니다`
-                  : '오늘 예정된 수업이 없습니다'}
+                  ? `${stats.todayClassList.length}개의 활성 수업이 있습니다`
+                  : '등록된 수업이 없습니다'}
               </CardDescription>
             </div>
             <Button asChild variant="ghost" size="sm">
@@ -112,7 +122,7 @@ export default function DashboardPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                 <Calendar size={20} className="text-muted-foreground" />
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">오늘은 수업이 없는 날입니다.</p>
+              <p className="mt-3 text-sm text-muted-foreground">등록된 수업이 없습니다.</p>
               <Button asChild variant="outline" size="sm" className="mt-4">
                 <Link to="/classes">수업 관리로 이동</Link>
               </Button>
@@ -127,11 +137,14 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <p className="font-medium leading-none">{cls.name}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{cls.startTime} – {cls.endTime}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {cls.schedule || '일정 미정'}
+                        {cls.currentStudents !== undefined && ` · ${cls.currentStudents}명`}
+                      </p>
                     </div>
                   </div>
                   <Button asChild size="sm" className="opacity-80 transition-opacity group-hover:opacity-100">
-                    <Link to={`/classes/${cls.id}/attendance`}>출석 체크</Link>
+                    <Link to={`/classes/${cls.id}`}>상세보기</Link>
                   </Button>
                 </div>
               ))}
@@ -139,41 +152,6 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* 최근 수업 기록 */}
-      {stats.recentSessions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">최근 수업 기록</CardTitle>
-            <CardDescription>최근 진행된 수업과 알림 발송 상태</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="divide-y divide-border">
-              {stats.recentSessions.map((s) => {
-                const dateStr = new Date(s.sessionDate).toLocaleDateString('ko-KR', {
-                  month: 'short', day: 'numeric', weekday: 'short',
-                });
-                return (
-                  <div key={s.id} className="flex items-center justify-between py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                        <BookOpen size={14} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium leading-none">{s.className}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">{dateStr}</p>
-                      </div>
-                    </div>
-                    <Badge variant={s.notificationSent ? 'default' : 'outline'}>
-                      {s.notificationSent ? '발송 완료' : '미발송'}
-                    </Badge>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

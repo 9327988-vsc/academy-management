@@ -8,7 +8,7 @@ import * as adminController from '../controllers/admin.controller';
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize('principal'));
+router.use(authorize('ADMIN'));
 
 router.get('/users', adminController.listUsers);
 

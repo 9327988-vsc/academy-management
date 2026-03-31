@@ -24,8 +24,8 @@ export default function LoginPage() {
       const res = await loginApi(email, password);
       if (res.success) {
         setAuth(res.user, res.accessToken, res.refreshToken);
-        const dest = res.user.role === 'parent' ? '/parent/dashboard'
-          : res.user.role === 'student' ? '/student/dashboard'
+        const dest = res.user.role === 'PARENT' ? '/parent/dashboard'
+          : res.user.role === 'STUDENT' ? '/student/dashboard'
           : '/dashboard';
         navigate(dest);
       }
@@ -58,7 +58,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="teacher@academy.com"
+                  placeholder="admin@academy.com"
                   autoComplete="email"
                   required
                 />

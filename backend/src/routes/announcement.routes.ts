@@ -8,7 +8,7 @@ import * as announcementController from '../controllers/announcement.controller'
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize('principal'));
+router.use(authorize('ADMIN'));
 
 router.get('/', announcementController.listAnnouncements);
 

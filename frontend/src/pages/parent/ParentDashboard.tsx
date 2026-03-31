@@ -30,7 +30,7 @@ export default function ParentDashboard() {
   const [loading, setLoading] = useState(true);
   const user = useAuthStore((s) => s.user);
   const viewAsRole = useAuthStore((s) => s.viewAsRole);
-  const isDevMode = user?.role === 'principal' && viewAsRole === 'parent';
+  const isDevMode = user?.role === 'ADMIN' && viewAsRole === 'PARENT';
 
   useEffect(() => {
     if (!user) return; // user 로드 대기 (페이지 새로고침 시 getMeApi 완료 후 실행)

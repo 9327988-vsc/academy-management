@@ -18,7 +18,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { Users, Trash2, Shield, Search, UserPlus } from 'lucide-react';
 
 interface UserItem {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone: string;
@@ -27,17 +27,17 @@ interface UserItem {
 }
 
 const ROLE_OPTIONS = [
-  { value: 'teacher', label: '선생님' },
-  { value: 'principal', label: '관리자' },
-  { value: 'parent', label: '학부모' },
-  { value: 'student', label: '학생' },
+  { value: 'TEACHER', label: '선생님' },
+  { value: 'ADMIN', label: '관리자' },
+  { value: 'PARENT', label: '학부모' },
+  { value: 'STUDENT', label: '학생' },
 ] as const;
 
 const ROLE_BADGE: Record<string, string> = {
-  principal: 'bg-amber-100 text-amber-700 border-amber-200',
-  teacher: 'bg-blue-100 text-blue-700 border-blue-200',
-  parent: 'bg-green-100 text-green-700 border-green-200',
-  student: 'bg-violet-100 text-violet-700 border-violet-200',
+  ADMIN: 'bg-amber-100 text-amber-700 border-amber-200',
+  TEACHER: 'bg-blue-100 text-blue-700 border-blue-200',
+  PARENT: 'bg-green-100 text-green-700 border-green-200',
+  STUDENT: 'bg-violet-100 text-violet-700 border-violet-200',
 };
 
 export default function UsersPage() {
@@ -48,7 +48,7 @@ export default function UsersPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [formData, setFormData] = useState({
-    email: '', password: '', name: '', phone: '', role: 'student',
+    email: '', password: '', name: '', phone: '', role: 'STUDENT',
     grade: '', school: '', parentPhone: '',
   });
   const currentUserId = useAuthStore((s) => s.user?.id);
@@ -63,7 +63,7 @@ export default function UsersPage() {
   useEffect(() => { fetchUsers(); }, []);
 
   const resetForm = () => {
-    setFormData({ email: '', password: '', name: '', phone: '', role: 'student', grade: '', school: '', parentPhone: '' });
+    setFormData({ email: '', password: '', name: '', phone: '', role: 'STUDENT', grade: '', school: '', parentPhone: '' });
   };
 
   const handleCreateUser = async () => {
@@ -202,7 +202,7 @@ export default function UsersPage() {
               <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="010-1234-5678" />
             </div>
 
-            {formData.role === 'student' && (
+            {formData.role === 'STUDENT' && (
               <>
                 <div className="space-y-1.5">
                   <Label>학년</Label>

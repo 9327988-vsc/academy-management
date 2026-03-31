@@ -6,7 +6,7 @@ import * as systemLogController from '../controllers/systemLog.controller';
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize('principal'));
+router.use(authorize('ADMIN'));
 
 router.get('/', systemLogController.listLogs);
 

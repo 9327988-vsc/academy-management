@@ -6,7 +6,7 @@ export async function getAdminUsersApi() {
   return data;
 }
 
-export async function updateUserRoleApi(userId: string, role: string) {
+export async function updateUserRoleApi(userId: number, role: string) {
   const { data } = await client.patch(`/admin/users/${userId}/role`, { role });
   return data;
 }
@@ -25,7 +25,7 @@ export async function createUserWithDataApi(body: {
   return data;
 }
 
-export async function deleteUserApi(userId: string) {
+export async function deleteUserApi(userId: number) {
   const { data } = await client.delete(`/admin/users/${userId}`);
   return data;
 }
@@ -63,12 +63,12 @@ export async function createAnnouncementApi(body: { title: string; content: stri
   return data;
 }
 
-export async function updateAnnouncementApi(id: string, body: { title?: string; content?: string; important?: boolean }) {
+export async function updateAnnouncementApi(id: number, body: { title?: string; content?: string; important?: boolean }) {
   const { data } = await client.patch(`/admin/announcements/${id}`, body);
   return data;
 }
 
-export async function deleteAnnouncementApi(id: string) {
+export async function deleteAnnouncementApi(id: number) {
   const { data } = await client.delete(`/admin/announcements/${id}`);
   return data;
 }
@@ -88,17 +88,17 @@ export async function getPaymentsApi(filters?: { status?: string; month?: string
   return data;
 }
 
-export async function createPaymentApi(body: { studentId: string; amount: number; month: string; description?: string }) {
+export async function createPaymentApi(body: { studentId: number; amount: number; month: string; description?: string }) {
   const { data } = await client.post('/admin/payments', body);
   return data;
 }
 
-export async function updatePaymentStatusApi(id: string, status: string) {
+export async function updatePaymentStatusApi(id: number, status: string) {
   const { data } = await client.patch(`/admin/payments/${id}/status`, { status });
   return data;
 }
 
-export async function deletePaymentApi(id: string) {
+export async function deletePaymentApi(id: number) {
   const { data } = await client.delete(`/admin/payments/${id}`);
   return data;
 }

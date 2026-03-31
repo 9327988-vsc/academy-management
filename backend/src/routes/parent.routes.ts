@@ -6,7 +6,7 @@ import * as parentController from '../controllers/parent.controller';
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize('parent'));
+router.use(authorize('PARENT'));
 
 router.get('/children', parentController.getChildren);
 

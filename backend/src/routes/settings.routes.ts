@@ -6,7 +6,7 @@ import * as settingsController from '../controllers/settings.controller';
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize('principal'));
+router.use(authorize('ADMIN'));
 
 router.get('/', settingsController.getSettings);
 router.put('/', settingsController.upsertSettings);
