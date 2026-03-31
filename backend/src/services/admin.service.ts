@@ -184,33 +184,34 @@ export async function getDevStudentDashboard() {
 }
 
 export async function getDevParentChildren() {
-  // 자녀가 있는 첫 번째 부모 phone 찾기
-  const parentRecord = await prisma.parent.findFirst({
-    include: {
-      student: {
-        include: {
-          classes: {
-            include: {
-              class: { select: { id: true, name: true, subject: true, dayOfWeek: true, startTime: true, endTime: true } },
-            },
-          },
-          attendance: {
-            orderBy: { checkTime: 'desc' },
-            take: 20,
-            include: {
-              session: { select: { sessionDate: true, class: { select: { name: true } } } },
-            },
-          },
-        },
-      },
-    },
+  // 학생 대시보드와 동일한 학생을 기준으로 부모 데이터 조회
+  // getDevStudentDashboard()와 같은 조건: 출석 기록이 있는 첫 번째 학생
+  const student = await prisma.student.findFirst({
+    where: { attendance: { some: {} } },
+    include: { parents: true },
   });
 
-  if (!parentRecord) return [];
+  if (!student) {
+    // 출석 기록이 없으면 아무 학생이나
+    const anyStudent = await prisma.student.findFirst({
+      include: { parents: true },
+    });
+    if (!anyStudent) return [];
+    // 부모가 없으면 빈 배열
+    if (anyStudent.parents.length === 0) return [];
+    // 아래 로직으로 이동
+    return getChildrenByParentPhone(anyStudent.parents[0].phone);
+  }
 
-  // 같은 phone의 모든 Parent 레코드 가져오기 (여러 자녀)
+  if (student.parents.length === 0) return [];
+
+  return getChildrenByParentPhone(student.parents[0].phone);
+}
+
+async function getChildrenByParentPhone(phone: string) {
+  // 같은 phone의 모든 Parent 레코드 가져오기 (여러 자녀 = 형제자매)
   const allParentRecords = await prisma.parent.findMany({
-    where: { phone: parentRecord.phone },
+    where: { phone },
     include: {
       student: {
         include: {
