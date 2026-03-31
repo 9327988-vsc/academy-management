@@ -21,15 +21,25 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      console.log('[Login] 로그인 시도:', email);
       const res = await loginApi(email, password);
+      console.log('[Login] 응답:', JSON.stringify(res, null, 2));
+
       if (res.success) {
+        console.log('[Login] 사용자:', res.user);
+        console.log('[Login] 토큰:', res.accessToken?.substring(0, 20) + '...');
         setAuth(res.user, res.accessToken, res.refreshToken);
         const dest = res.user.role === 'PARENT' ? '/parent/dashboard'
           : res.user.role === 'STUDENT' ? '/student/dashboard'
           : '/dashboard';
+        console.log('[Login] 이동:', dest);
         navigate(dest);
+      } else {
+        console.error('[Login] success=false:', res);
+        setError(res.message || '로그인에 실패했습니다.');
       }
     } catch (err: unknown) {
+      console.error('[Login] 에러:', err);
       const axiosErr = err as { response?: { data?: { message?: string } } };
       setError(axiosErr.response?.data?.message || '로그인에 실패했습니다.');
     } finally {
