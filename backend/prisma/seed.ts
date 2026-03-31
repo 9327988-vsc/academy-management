@@ -4,182 +4,248 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Starting comprehensive seed (250 students, 20 teachers)...');
 
-  // 기존 데이터 정리 (FK 의존 순서대로 삭제)
-  await prisma.notification.deleteMany();
-  await prisma.attendance.deleteMany();
-  await prisma.classSession.deleteMany();
+  // 기존 데이터 전부 삭제 (역순)
+  await prisma.salaryRecord.deleteMany();
+  await prisma.classSchedule.deleteMany();
+  await prisma.teacherSchedule.deleteMany();
+  await prisma.grade.deleteMany();
+  await prisma.homework.deleteMany();
+  await prisma.classHomework.deleteMany();
+  await prisma.consultation.deleteMany();
   await prisma.payment.deleteMany();
-  await prisma.classStudent.deleteMany();
-  await prisma.parent.deleteMany();
-  await prisma.student.deleteMany();
+  await prisma.attendance.deleteMany();
+  await prisma.enrollment.deleteMany();
   await prisma.class.deleteMany();
-  await prisma.announcement.deleteMany();
-  await prisma.systemLog.deleteMany();
+  await prisma.teacher.deleteMany();
+  await prisma.student.deleteMany();
+  await prisma.parent.deleteMany();
   await prisma.user.deleteMany();
-  console.log('✅ 기존 데이터 정리 완료');
 
-  // 1. 비밀번호 해싱
-  const [teacherPw, adminPw, parentPw, studentPw] = await Promise.all([
-    bcrypt.hash('test1234', 10),
-    bcrypt.hash('admin1234', 10),
-    bcrypt.hash('parent1234', 10),
-    bcrypt.hash('student1234', 10),
-  ]);
+  console.log('✅ 기존 데이터 삭제 완료');
 
-  // 2. 사용자 계정 생성
-  const teacher = await prisma.user.create({
-    data: { email: 'teacher@academy.com', password: teacherPw, name: '김선생', phone: '010-1234-5678', role: 'teacher' },
-  });
+  const hashedPassword = await bcrypt.hash('test1234', 10);
 
-  const admin = await prisma.user.create({
-    data: { email: 'admin@academy.com', password: adminPw, name: '관리자', phone: '010-0000-0000', role: 'principal' },
-  });
-
-  const parentUser = await prisma.user.create({
-    data: { email: 'parent@test.com', password: parentPw, name: '김아무개', phone: '010-2222-0001', role: 'parent' },
-  });
-
-  const studentUser = await prisma.user.create({
-    data: { email: 'student@test.com', password: studentPw, name: '김철수', phone: '010-1111-0001', role: 'student' },
-  });
-
-  console.log(`✅ 계정 생성: ${teacher.email}, ${admin.email}, ${parentUser.email}, ${studentUser.email}`);
-
-  // 3. 수업 생성
-  const mathClass = await prisma.class.create({
-    data: { teacherId: teacher.id, name: '수학 중3 심화반', subject: '수학', dayOfWeek: '월,수,금', startTime: '17:00', endTime: '19:00', room: '301호', maxStudents: 15 },
-  });
-
-  const engClass = await prisma.class.create({
-    data: { teacherId: teacher.id, name: '영어 고1 기본반', subject: '영어', dayOfWeek: '화,목', startTime: '19:00', endTime: '21:00', room: '205호', maxStudents: 12 },
-  });
-  console.log(`✅ 수업 생성: ${mathClass.name}, ${engClass.name}`);
-
-  // 4. 학생 + 학부모 데이터 (전화번호 매칭이 핵심)
-  const studentsData = [
-    // 김철수: phone이 studentUser.phone과 동일, 학부모 phone이 parentUser.phone과 동일
-    { name: '김철수', grade: '중3', school: '서울중학교', phone: '010-1111-0001', parentName: '김아무개', parentPhone: '010-2222-0001', parentRel: '부' },
-    { name: '이영희', grade: '중3', school: '서울중학교', phone: '010-1111-0002', parentName: '이어머니', parentPhone: '010-2222-0002', parentRel: '모' },
-    { name: '박민수', grade: '중3', school: '한강중학교', phone: '010-1111-0003', parentName: '박부모', parentPhone: '010-2222-0003', parentRel: '부' },
-    { name: '최지원', grade: '고1', school: '서울고등학교', phone: '010-1111-0004', parentName: '최보호자', parentPhone: '010-2222-0004', parentRel: '모' },
-    { name: '강하늘', grade: '고1', school: '서울고등학교', phone: '010-1111-0005', parentName: '강부모', parentPhone: '010-2222-0005', parentRel: '부' },
-  ];
-
-  const createdStudents = [];
-  for (const s of studentsData) {
-    const student = await prisma.student.create({
-      data: {
-        name: s.name,
-        grade: s.grade,
-        school: s.school,
-        phone: s.phone,
-        teacherId: teacher.id,
-        parents: {
-          create: { name: s.parentName, phone: s.parentPhone, relationship: s.parentRel },
-        },
-      },
-    });
-    createdStudents.push(student);
-
-    // 중3 → 수학반, 고1 → 영어반
-    const classId = s.grade === '중3' ? mathClass.id : engClass.id;
-    await prisma.classStudent.create({ data: { classId, studentId: student.id } });
-  }
-  console.log(`✅ 학생 ${createdStudents.length}명 생성 + 수업 등록 완료`);
-
-  // 5. 샘플 수업 세션 생성 (출석 기록의 전제)
-  const today = new Date();
-  const sessions = [];
-  for (let i = 0; i < 5; i++) {
-    const sessionDate = new Date(today);
-    sessionDate.setDate(today.getDate() - (i * 2 + 1));
-
-    const session = await prisma.classSession.create({
-      data: {
-        classId: mathClass.id,
-        sessionDate,
-        startTime: '17:00',
-        endTime: '19:00',
-        topic: `수학 ${i + 1}회차 수업`,
-      },
-    });
-    sessions.push(session);
-  }
-  console.log(`✅ 수업 세션 ${sessions.length}개 생성`);
-
-  // 6. 김철수 출석 기록 생성 (student@test.com에서 확인 가능)
-  const kimStudent = createdStudents[0]; // 김철수
-  const statuses: Array<'present' | 'late' | 'absent'> = ['present', 'present', 'present', 'late', 'absent'];
-  for (let i = 0; i < sessions.length; i++) {
-    await prisma.attendance.create({
-      data: {
-        sessionId: sessions[i].id,
-        studentId: kimStudent.id,
-        status: statuses[i],
-      },
-    });
-  }
-  console.log(`✅ 김철수 출석 기록 ${sessions.length}건 생성 (출석3, 지각1, 결석1)`);
-
-  // 7. 샘플 공지사항
-  await prisma.announcement.create({
-    data: { title: '3월 신학기 안내', content: '3월 2일부터 새 학기 수업이 시작됩니다. 교재를 준비해 주세요.', important: true, authorId: admin.id },
-  });
-  await prisma.announcement.create({
-    data: { title: '수업료 납부 안내', content: '이번 달 수업료는 3월 10일까지 납부 부탁드립니다.', important: false, authorId: admin.id },
-  });
-  console.log('✅ 공지사항 2건 생성');
-
-  // 8. 샘플 결제 데이터
-  for (const student of createdStudents) {
-    await prisma.payment.create({
-      data: { studentId: student.id, amount: 300000, month: '2026-03', status: student.name === '김철수' ? 'paid' : 'unpaid', paidAt: student.name === '김철수' ? new Date() : null, description: '수학/영어 수업료' },
-    });
-  }
-  console.log(`✅ 결제 데이터 ${createdStudents.length}건 생성`);
-
-  // 9. 테스트용 부모2 + 학생2 (연결된 계정)
-  const parentUser2 = await prisma.user.create({
-    data: { email: 'parent2@test.com', password: parentPw, name: '이학부모', phone: '010-5555-6666', role: 'parent' },
-  });
-  console.log(`✅ 테스트 부모2 생성: ${parentUser2.email}`);
-
-  const student2 = await prisma.student.create({
+  // 1. 관리자
+  const adminUser = await prisma.user.create({
     data: {
-      name: '이학생',
-      phone: '010-7777-8888',
-      grade: '중2',
-      school: '테스트중학교',
-      teacherId: teacher.id,
-      parents: {
-        create: { name: '이학부모', phone: '010-5555-6666', relationship: '모' },
-      },
+      email: 'admin@academy.com',
+      password: await bcrypt.hash('admin1234', 10),
+      name: '학원장',
+      role: 'ADMIN',
+      phone: '010-1234-5678',
     },
   });
+  console.log('✅ 관리자 생성:', adminUser.name);
 
-  const studentUser2 = await prisma.user.create({
-    data: { email: 'student2@test.com', password: studentPw, name: '이학생', phone: '010-7777-8888', role: 'student' },
-  });
-  console.log(`✅ 테스트 학생2 생성: ${studentUser2.email} → 부모: ${parentUser2.name}`);
+  // 2. 강사 20명
+  const teachers = [];
+  const subjects = ['수학', '영어', '과학', '국어', '사회'];
 
-  // 학생2를 수학 수업에 등록
-  await prisma.classStudent.create({ data: { classId: mathClass.id, studentId: student2.id } });
-  console.log(`✅ 테스트 학생2 수업 등록: ${mathClass.name}`);
+  for (let i = 1; i <= 20; i++) {
+    const teacherUser = await prisma.user.create({
+      data: {
+        email: `teacher${i}@academy.com`,
+        password: hashedPassword,
+        name: `강사${i}`,
+        role: 'TEACHER',
+        phone: `010-2000-${String(i).padStart(4, '0')}`,
+      },
+    });
 
-  // 검증 로그
-  console.log('\n📋 매칭 검증:');
-  console.log(`  parent@test.com (phone: ${parentUser.phone}) → Parent.phone: 010-2222-0001 → 학생: 김철수`);
-  console.log(`  student@test.com (phone: ${studentUser.phone}) → Student.phone: 010-1111-0001 → 학생: 김철수`);
-  console.log(`  parent2@test.com (phone: ${parentUser2.phone}) → Parent.phone: 010-5555-6666 → 학생: 이학생`);
-  console.log(`  student2@test.com (phone: ${studentUser2.phone}) → Student.phone: 010-7777-8888 → 학생: 이학생`);
-  console.log('\n🌱 Seed completed!');
+    const teacher = await prisma.teacher.create({
+      data: {
+        userId: teacherUser.id,
+        phone: teacherUser.phone!,
+        email: teacherUser.email,
+        education: `${['서울대', '연세대', '고려대', '카이스트'][i % 4]} ${subjects[i % 5]}과 졸업`,
+        career: `${(i % 10) + 1}년차 경력. 학원 강의 전문.`,
+        subjects: [subjects[i % 5], subjects[(i + 1) % 5]],
+        introduction: `안녕하세요. ${subjects[i % 5]} 전문 강사 ${teacherUser.name}입니다.`,
+        employmentType: i % 3 === 0 ? '계약직' : '정규직',
+        hourlyRate: i % 3 === 0 ? 50000 : null,
+        salary: i % 3 !== 0 ? 3000000 + (i * 100000) : null,
+      },
+    });
+
+    teachers.push(teacher);
+  }
+  console.log(`✅ 강사 20명 생성`);
+
+  // 3. 학부모 50명
+  const parents = [];
+  for (let i = 1; i <= 50; i++) {
+    const parentUser = await prisma.user.create({
+      data: {
+        email: `parent${i}@test.com`,
+        password: hashedPassword,
+        name: `학부모${i}`,
+        role: 'PARENT',
+        phone: `010-3000-${String(i).padStart(4, '0')}`,
+      },
+    });
+
+    const parent = await prisma.parent.create({
+      data: {
+        userId: parentUser.id,
+        name: parentUser.name,
+        phone: parentUser.phone!,
+        email: parentUser.email,
+        relation: i % 2 === 0 ? '부' : '모',
+      },
+    });
+
+    parents.push(parent);
+  }
+  console.log(`✅ 학부모 50명 생성`);
+
+  // 4. 학생 250명
+  const students = [];
+  const grades = ['초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3'];
+
+  for (let i = 1; i <= 250; i++) {
+    const studentUser = await prisma.user.create({
+      data: {
+        email: `student${i}@test.com`,
+        password: hashedPassword,
+        name: `학생${i}`,
+        role: 'STUDENT',
+        phone: `010-4000-${String(i).padStart(4, '0')}`,
+      },
+    });
+
+    const student = await prisma.student.create({
+      data: {
+        userId: studentUser.id,
+        name: studentUser.name,
+        phone: studentUser.phone!,
+        grade: grades[i % grades.length],
+        school: `서울${['초', '중', '고'][Math.floor((i % grades.length) / 3)]}등학교`,
+        parentId: parents[Math.floor((i - 1) / 5)].id,
+        status: 'ACTIVE',
+      },
+    });
+
+    students.push(student);
+  }
+  console.log(`✅ 학생 250명 생성`);
+
+  // 5. 수업 40개 (강사당 2개)
+  const classes = [];
+  for (let i = 0; i < 20; i++) {
+    for (let j = 0; j < 2; j++) {
+      const cls = await prisma.class.create({
+        data: {
+          name: `${subjects[i % 5]} ${grades[(i + j) % grades.length]} ${j === 0 ? '기본반' : '심화반'}`,
+          subject: subjects[i % 5],
+          teacherId: teachers[i].id,
+          schedule: j === 0 ? '월수금 16:00-18:00' : '화목 16:00-18:00',
+          startDate: new Date('2026-03-01'),
+          endDate: new Date('2026-08-31'),
+          room: `${Math.floor(i / 4) + 1}층 ${(i % 4) + 1}호`,
+          capacity: 15,
+          tuitionFee: 300000 + (j * 50000),
+          status: 'ACTIVE',
+        },
+      });
+
+      classes.push(cls);
+    }
+  }
+  console.log(`✅ 수업 40개 생성`);
+
+  // 6. 수강 신청 (학생당 2-3개)
+  let enrollmentCount = 0;
+  for (let i = 0; i < students.length; i++) {
+    const numClasses = Math.floor(Math.random() * 2) + 2;
+    for (let j = 0; j < numClasses; j++) {
+      const cls = classes[(i * 3 + j) % classes.length];
+
+      await prisma.enrollment.create({
+        data: {
+          studentId: students[i].id,
+          classId: cls.id,
+          status: 'ACTIVE',
+          tuitionFee: cls.tuitionFee,
+          discount: Math.random() > 0.7 ? 30000 : 0,
+          finalFee: cls.tuitionFee - (Math.random() > 0.7 ? 30000 : 0),
+        },
+      });
+      enrollmentCount++;
+    }
+  }
+  console.log(`✅ 수강 신청 ${enrollmentCount}개 생성`);
+
+  // 7. 출석 기록 (최근 2주, 샘플)
+  let attendanceCount = 0;
+  for (let day = 0; day < 14; day++) {
+    const date = new Date();
+    date.setDate(date.getDate() - day);
+
+    for (let i = 0; i < Math.min(50, students.length); i++) {
+      const student = students[i];
+      const enrollments = await prisma.enrollment.findMany({
+        where: { studentId: student.id },
+        take: 1,
+      });
+
+      if (enrollments.length > 0) {
+        await prisma.attendance.create({
+          data: {
+            studentId: student.id,
+            classId: enrollments[0].classId,
+            date: date,
+            status: Math.random() > 0.1 ? 'PRESENT' : (Math.random() > 0.5 ? 'LATE' : 'ABSENT'),
+            checkInTime: new Date(date.setHours(16, 0, 0)),
+            recordedBy: `강사${(i % 20) + 1}`,
+          },
+        });
+        attendanceCount++;
+      }
+    }
+  }
+  console.log(`✅ 출석 기록 ${attendanceCount}개 생성`);
+
+  // 8. 결제 기록 (이번 달)
+  for (let i = 0; i < students.length; i++) {
+    const enrollments = await prisma.enrollment.findMany({
+      where: { studentId: students[i].id },
+    });
+
+    if (enrollments.length > 0) {
+      const totalFee = enrollments.reduce((sum, e) => sum + e.finalFee, 0);
+
+      await prisma.payment.create({
+        data: {
+          studentId: students[i].id,
+          amount: totalFee,
+          dueDate: new Date('2026-03-05'),
+          paidDate: Math.random() > 0.2 ? new Date('2026-03-03') : null,
+          status: Math.random() > 0.2 ? 'PAID' : 'PENDING',
+          month: '2026-03',
+          method: ['카드', '현금', '계좌이체'][Math.floor(Math.random() * 3)],
+        },
+      });
+    }
+  }
+  console.log(`✅ 결제 기록 250개 생성`);
+
+  console.log('\n=== Seed 완료 ===');
+  console.log('📊 생성된 데이터:');
+  console.log(`- 관리자: 1명`);
+  console.log(`- 강사: 20명`);
+  console.log(`- 학부모: 50명`);
+  console.log(`- 학생: 250명`);
+  console.log(`- 수업: 40개`);
+  console.log(`- 수강 신청: ${enrollmentCount}개`);
+  console.log(`- 출석 기록: ${attendanceCount}개`);
+  console.log(`- 결제 기록: 250개`);
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seed 에러:', e);
     process.exit(1);
   })
   .finally(async () => {

@@ -7,245 +7,462 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================
+// 사용자 (기본)
+// ============================================
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
   password  String
   name      String
-  phone     String
-  role      Role     @default(teacher)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  role      Role
+  phone     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  classes       Class[]
-  students      Student[]
-  announcements Announcement[]
+  teacherProfile Teacher?
+  studentProfile Student?
+  parentProfile  Parent?
 
   @@index([email])
-  @@map("users")
+  @@index([role])
 }
 
 enum Role {
-  teacher
-  principal
-  parent
-  student
+  ADMIN
+  TEACHER
+  PARENT
+  STUDENT
 }
 
-model Class {
-  id          String   @id @default(uuid())
-  teacherId   String   @map("teacher_id")
-  name        String
-  subject     String
-  dayOfWeek   String   @map("day_of_week")
-  startTime   String   @map("start_time")
-  endTime     String   @map("end_time")
-  room        String?
-  maxStudents Int      @default(15) @map("max_students")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+// ============================================
+// 강사
+// ============================================
+model Teacher {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone          String
+  email          String
+  education      String?  @db.Text
+  career         String?  @db.Text
+  subjects       Json?
+  introduction   String?  @db.Text
+  photoUrl       String?
+  hireDate       DateTime @default(now())
+  employmentType String   @default("정규직")
+  hourlyRate     Int?
+  salary         Int?
+  totalStudents  Int      @default(0)
+  totalClasses   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  teacher  User           @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  students ClassStudent[]
-  sessions ClassSession[]
+  classes          Class[]
+  consultations    Consultation[]
+  teacherSchedules TeacherSchedule[]
+  salaryRecords    SalaryRecord[]
 
-  @@index([teacherId])
-  @@map("classes")
+  @@index([userId])
 }
 
+// ============================================
+// 학생
+// ============================================
 model Student {
-  id        String   @id @default(uuid())
-  name      String
-  phone     String?
-  grade     String?
-  school    String?
-  teacherId String   @map("teacher_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id               Int           @id @default(autoincrement())
+  userId           Int?          @unique
+  user             User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name             String
+  phone            String
+  grade            String?
+  school           String?
+  birthDate        DateTime?
+  address          String?       @db.Text
+  parentId         Int?
+  parent           Parent?       @relation(fields: [parentId], references: [id], onDelete: SetNull)
+  registrationDate DateTime      @default(now())
+  status           StudentStatus @default(ACTIVE)
+  totalEnrollments Int           @default(0)
+  attendanceRate   Float         @default(100)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
 
-  teacher    User           @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  parents    Parent[]
-  classes    ClassStudent[]
-  attendance Attendance[]
-  payments   Payment[]
+  enrollments   Enrollment[]
+  attendances   Attendance[]
+  payments      Payment[]
+  consultations Consultation[]
+  homeworks     Homework[]
+  grades        Grade[]
+
+  @@index([parentId])
+  @@index([phone])
+  @@index([status])
+}
+
+enum StudentStatus {
+  ACTIVE
+  WITHDRAWN
+  SUSPENDED
+  GRADUATED
+}
+
+// ============================================
+// 학부모
+// ============================================
+model Parent {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name      String
+  phone     String   @unique
+  email     String?
+  relation  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  students Student[]
+
+  @@index([phone])
+}
+
+// ============================================
+// 수업
+// ============================================
+model Class {
+  id              Int         @id @default(autoincrement())
+  name            String
+  subject         String
+  description     String?     @db.Text
+  teacherId       Int
+  teacher         Teacher     @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  schedule        String
+  startDate       DateTime
+  endDate         DateTime
+  room            String?
+  capacity        Int         @default(15)
+  tuitionFee      Int
+  status          ClassStatus @default(ACTIVE)
+  currentStudents Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  enrollments   Enrollment[]
+  attendances   Attendance[]
+  schedules     ClassSchedule[]
+  homeworks     ClassHomework[]
 
   @@index([teacherId])
-  @@map("students")
-}
-
-model Parent {
-  id           String   @id @default(uuid())
-  studentId    String   @map("student_id")
-  name         String
-  phone        String
-  relationship String?
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@index([studentId])
-  @@map("parents")
-}
-
-model ClassStudent {
-  id         String   @id @default(uuid())
-  classId    String   @map("class_id")
-  studentId  String   @map("student_id")
-  enrolledAt DateTime @default(now()) @map("enrolled_at")
-
-  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@unique([classId, studentId], name: "unique_enrollment")
-  @@index([classId])
-  @@index([studentId])
-  @@map("class_students")
-}
-
-model ClassSession {
-  id               String    @id @default(uuid())
-  classId          String    @map("class_id")
-  sessionDate      DateTime  @map("session_date") @db.Date
-  startTime        String    @map("start_time")
-  endTime          String    @map("end_time")
-  topic            String?
-  textbook         String?
-  pages            String?
-  keyConcepts      String?   @map("key_concepts") @db.Text
-  homework         String?   @db.Text
-  homeworkDueDate  DateTime? @map("homework_due_date") @db.Date
-  nextTopic        String?   @map("next_topic")
-  specialNotes     String?   @map("special_notes") @db.Text
-  notificationSent Boolean   @default(false) @map("notification_sent")
-  createdAt        DateTime  @default(now()) @map("created_at")
-
-  class         Class          @relation(fields: [classId], references: [id], onDelete: Cascade)
-  attendance    Attendance[]
-  notifications Notification[]
-
-  @@index([classId, sessionDate])
-  @@index([notificationSent])
-  @@map("class_sessions")
-}
-
-model Attendance {
-  id        String           @id @default(uuid())
-  sessionId String           @map("session_id")
-  studentId String           @map("student_id")
-  status    AttendanceStatus
-  checkTime DateTime         @default(now()) @map("check_time")
-  notes     String?          @db.Text
-
-  session ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  student Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@unique([sessionId, studentId], name: "unique_attendance")
-  @@index([sessionId])
-  @@index([studentId])
   @@index([status])
-  @@map("attendance")
+}
+
+enum ClassStatus {
+  ACTIVE
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================
+// 수강 신청
+// ============================================
+model Enrollment {
+  id             Int              @id @default(autoincrement())
+  studentId      Int
+  student        Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId        Int
+  class          Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  enrollmentDate DateTime         @default(now())
+  status         EnrollmentStatus @default(ACTIVE)
+  tuitionFee     Int
+  discount       Int              @default(0)
+  finalFee       Int
+  note           String?          @db.Text
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([studentId, classId])
+  @@index([studentId])
+  @@index([classId])
+  @@index([status])
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  WITHDRAWN
+  SUSPENDED
+}
+
+// ============================================
+// 출석
+// ============================================
+model Attendance {
+  id           Int              @id @default(autoincrement())
+  studentId    Int
+  student      Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId      Int
+  class        Class            @relation(fields: [classId], references: [id], onDelete: Cascade)
+  date         DateTime
+  status       AttendanceStatus
+  checkInTime  DateTime?
+  checkOutTime DateTime?
+  note         String?          @db.Text
+  recordedBy   String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([studentId, classId, date])
+  @@index([studentId])
+  @@index([classId])
+  @@index([date])
 }
 
 enum AttendanceStatus {
-  present
-  absent
-  late
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
 }
 
-model Notification {
-  id             String             @id @default(uuid())
-  sessionId      String             @map("session_id")
-  recipientPhone String             @map("recipient_phone")
-  recipientName  String             @map("recipient_name")
-  recipientType  RecipientType      @map("recipient_type")
-  content        String             @db.Text
-  status         NotificationStatus @default(pending)
-  sentAt         DateTime?          @map("sent_at")
-  errorMessage   String?            @map("error_message") @db.Text
-  createdAt      DateTime           @default(now()) @map("created_at")
-
-  session ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-  @@index([sessionId])
-  @@index([status])
-  @@index([sentAt])
-  @@map("notifications")
-}
-
-enum RecipientType {
-  student
-  parent
-}
-
-enum NotificationStatus {
-  pending
-  sent
-  failed
-}
-
-model AcademySettings {
-  id             Int      @id @default(autoincrement())
-  academyName    String?  @map("academy_name")
-  ownerName      String?  @map("owner_name")
-  phone          String?
-  address        String?
-  businessNumber String?  @map("business_number")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  @@map("academy_settings")
-}
-
-model Announcement {
-  id        String   @id @default(uuid())
-  title     String
-  content   String   @db.Text
-  important Boolean  @default(false)
-  authorId  String   @map("author_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  @@index([createdAt])
-  @@map("announcements")
-}
-
-model SystemLog {
-  id        String   @id @default(uuid())
-  userId    String?  @map("user_id")
-  userName  String?  @map("user_name")
-  action    String
-  target    String?
-  detail    String?  @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@index([createdAt])
-  @@index([userId])
-  @@map("system_logs")
-}
-
+// ============================================
+// 결제
+// ============================================
 model Payment {
-  id          String        @id @default(uuid())
-  studentId   String        @map("student_id")
+  id          Int           @id @default(autoincrement())
+  studentId   Int
+  student     Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   amount      Int
+  dueDate     DateTime
+  paidDate    DateTime?
+  status      PaymentStatus @default(PENDING)
   month       String
-  status      PaymentStatus @default(unpaid)
-  paidAt      DateTime?     @map("paid_at")
-  description String?
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
-
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  description String?       @db.Text
+  method      String?
+  receiptUrl  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([studentId])
   @@index([status])
-  @@index([month])
-  @@map("payments")
+  @@index([dueDate])
 }
 
 enum PaymentStatus {
-  unpaid
-  paid
-  overdue
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// ============================================
+// 상담/면담
+// ============================================
+model Consultation {
+  id            Int                @id @default(autoincrement())
+  studentId     Int
+  student       Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacherId     Int
+  teacher       Teacher            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  scheduledDate DateTime
+  actualDate    DateTime?
+  duration      Int?
+  type          ConsultationType
+  status        ConsultationStatus @default(SCHEDULED)
+  topic         String?            @db.Text
+  content       String?            @db.Text
+  outcome       String?            @db.Text
+  attendees     String?            @db.Text
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([studentId])
+  @@index([teacherId])
+  @@index([scheduledDate])
+}
+
+enum ConsultationType {
+  INITIAL
+  REGULAR
+  EMERGENCY
+  PARENT
+}
+
+enum ConsultationStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// ============================================
+// 숙제
+// ============================================
+model ClassHomework {
+  id          Int      @id @default(autoincrement())
+  classId     Int
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  title       String
+  description String   @db.Text
+  dueDate     DateTime
+  fileUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  submissions Homework[]
+
+  @@index([classId])
+  @@index([dueDate])
+}
+
+model Homework {
+  id              Int            @id @default(autoincrement())
+  classHomeworkId Int
+  classHomework   ClassHomework  @relation(fields: [classHomeworkId], references: [id], onDelete: Cascade)
+  studentId       Int
+  student         Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status          HomeworkStatus @default(PENDING)
+  submittedDate   DateTime?
+  content         String?        @db.Text
+  fileUrl         String?
+  grade           String?
+  feedback        String?        @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@unique([classHomeworkId, studentId])
+  @@index([studentId])
+  @@index([status])
+}
+
+enum HomeworkStatus {
+  PENDING
+  SUBMITTED
+  LATE
+  GRADED
+}
+
+// ============================================
+// 성적
+// ============================================
+model Grade {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  examName   String
+  examDate   DateTime
+  subject    String
+  score      Float
+  maxScore   Float
+  percentage Float
+  rank       Int?
+  grade      String?
+  comment    String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([examDate])
+}
+
+// ============================================
+// 강사 일정
+// ============================================
+model TeacherSchedule {
+  id          Int          @id @default(autoincrement())
+  teacherId   Int
+  teacher     Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  date        DateTime
+  startTime   String
+  endTime     String
+  type        ScheduleType
+  title       String
+  description String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([teacherId])
+  @@index([date])
+}
+
+enum ScheduleType {
+  CLASS
+  MEETING
+  CONSULTATION
+  BREAK
+  OTHER
+}
+
+// ============================================
+// 수업 일정
+// ============================================
+model ClassSchedule {
+  id           Int                 @id @default(autoincrement())
+  classId      Int
+  class        Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  date         DateTime
+  startTime    String
+  endTime      String
+  status       ClassScheduleStatus @default(SCHEDULED)
+  originalDate DateTime?
+  reason       String?             @db.Text
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([classId])
+  @@index([date])
+}
+
+enum ClassScheduleStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+// ============================================
+// 급여
+// ============================================
+model SalaryRecord {
+  id          Int          @id @default(autoincrement())
+  teacherId   Int
+  teacher     Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  month       String
+  workHours   Float
+  hourlyRate  Int?
+  baseSalary  Int
+  bonus       Int          @default(0)
+  deduction   Int          @default(0)
+  totalSalary Int
+  paymentDate DateTime?
+  status      SalaryStatus @default(PENDING)
+  detail      String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([teacherId, month])
+  @@index([teacherId])
+  @@index([month])
+}
+
+enum SalaryStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+// ============================================
+// 학원 설정
+// ============================================
+model AcademySettings {
+  id             Int      @id @default(autoincrement())
+  academyName    String?
+  ownerName      String?
+  phone          String?
+  address        String?
+  businessNumber String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

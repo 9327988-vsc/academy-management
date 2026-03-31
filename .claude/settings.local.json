@@ -29,7 +29,10 @@
       "Bash(DATABASE_URL=\"mysql://root:ZatBmKbmWXPwKhbOHHmZCitIPFxvrzkg@gondola.proxy.rlwy.net:24548/railway\" npx ts-node prisma/seed.ts)",
       "Bash(git push:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"backup: Before complete system redesign:*)"
+      "Bash(git commit -m \"backup: Before complete system redesign:*)",
+      "Bash(git checkout:*)",
+      "Bash(cd backend:*)",
+      "Bash(cd:*)"
     ]
   }
 }
