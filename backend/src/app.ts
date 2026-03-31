@@ -23,6 +23,9 @@ dotenv.config();
 
 const app = express();
 
+// Railway/Vercel 등 리버스 프록시 환경 설정
+app.set('trust proxy', 1);
+
 // 기본 미들웨어
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
