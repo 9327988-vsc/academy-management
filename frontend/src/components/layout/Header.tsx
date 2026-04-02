@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { logoutApi } from '@/api/auth.api';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, BookOpen, Settings, LogOut, ChevronDown, GraduationCap, Users, UserCircle, Wrench, CreditCard, Megaphone, Activity } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Settings, LogOut, ChevronDown, GraduationCap, Users, UserCircle, Wrench, CreditCard, Megaphone, Activity, CalendarCheck } from 'lucide-react';
 import type { Role } from '@/types/api.types';
 
 function getNavItems(role?: string | null) {
@@ -28,6 +28,7 @@ function getNavItems(role?: string | null) {
   const items = [
     { to: '/dashboard', label: '대시보드', icon: LayoutDashboard },
     { to: '/classes', label: '수업', icon: BookOpen },
+    { to: '/makeup/calendar', label: '보강관리', icon: CalendarCheck },
   ];
   if (role === 'ADMIN') {
     items.push(
@@ -50,7 +51,7 @@ function getRoleBadge(role?: string) {
   }
 }
 
-const DEV_ROLES: { value: Role | null; label: string; icon: any }[] = [
+const DEV_ROLES: { value: Role | null; label: string; icon: typeof Settings }[] = [
   { value: null, label: '관리자로 보기', icon: Settings },
   { value: 'TEACHER', label: '선생님으로 보기', icon: Users },
   { value: 'PARENT', label: '학부모로 보기', icon: UserCircle },
@@ -96,7 +97,7 @@ export default function Header() {
           </Link>
           <nav className="flex items-center gap-1">
             {navItems.map(({ to, label, icon: Icon }) => {
-              const isActive = location.pathname === to || (to === '/classes' && location.pathname.startsWith('/classes'));
+              const isActive = location.pathname === to || (to === '/classes' && location.pathname.startsWith('/classes')) || (to === '/makeup/calendar' && location.pathname.startsWith('/makeup'));
               return (
                 <Link
                   key={to}

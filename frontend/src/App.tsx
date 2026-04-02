@@ -20,6 +20,9 @@ import UsersPage from '@/pages/admin/UsersPage';
 import PaymentsPage from '@/pages/admin/PaymentsPage';
 import AnnouncementsPage from '@/pages/admin/AnnouncementsPage';
 import SystemLogsPage from '@/pages/admin/SystemLogsPage';
+import MakeupSlotManagePage from '@/pages/MakeupSlotManagePage';
+import MakeupRequestPage from '@/pages/MakeupRequestPage';
+import MakeupCalendarPage from '@/pages/MakeupCalendarPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,6 +51,13 @@ export default function App() {
                 <Route path="/classes/:id/students" element={<StudentManagePage />} />
                 <Route path="/classes/:id/attendance" element={<AttendancePage />} />
                 <Route path="/classes/:id/sessions/:sid/notify" element={<NotificationPage />} />
+                <Route path="/classes/:id/makeup" element={<MakeupSlotManagePage />} />
+                <Route path="/makeup/calendar" element={<MakeupCalendarPage />} />
+              </Route>
+
+              {/* 학생/학부모 보강 신청 */}
+              <Route element={<RoleGuard allowedRoles={['STUDENT', 'PARENT']} />}>
+                <Route path="/makeup/request/:classId" element={<MakeupRequestPage />} />
               </Route>
 
               {/* 관리자 전용 */}

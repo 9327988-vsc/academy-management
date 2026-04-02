@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getStudentDashboardApi } from '@/api/studentPortal.api';
 import { getDevStudentDashboardApi } from '@/api/admin.api';
+import { getRequestsApi } from '@/api/makeup.api';
 import { useAuthStore } from '@/stores/authStore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { Calendar, Clock, CheckCircle, XCircle, AlertTriangle, BookOpen, TrendingUp, User, Wrench } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, XCircle, AlertTriangle, BookOpen, TrendingUp, User, Wrench, CalendarCheck } from 'lucide-react';
+import type { MakeupRequest } from '@/types';
 
 interface StudentData {
   name: string;
@@ -24,9 +28,18 @@ const STATUS_CONFIG = {
   late: { label: '지각', icon: AlertTriangle, className: 'text-yellow-600 bg-yellow-50' },
 } as const;
 
+const MAKEUP_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+  PENDING: { label: '대기중', className: 'bg-yellow-100 text-yellow-700' },
+  APPROVED: { label: '승인됨', className: 'bg-blue-100 text-blue-700' },
+  COMPLETED: { label: '완료', className: 'bg-green-100 text-green-700' },
+  REJECTED: { label: '거절됨', className: 'bg-red-100 text-red-700' },
+  CANCELLED: { label: '취소됨', className: 'bg-slate-100 text-slate-600' },
+};
+
 export default function StudentDashboard() {
   const [data, setData] = useState<StudentData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [makeupRequests, setMakeupRequests] = useState<MakeupRequest[]>([]);
   const user = useAuthStore((s) => s.user);
   const viewAsRole = useAuthStore((s) => s.viewAsRole);
   const isDevMode = user?.role === 'ADMIN' && viewAsRole === 'STUDENT';
@@ -38,6 +51,12 @@ export default function StudentDashboard() {
       .then((res) => { if (res.success) setData(res.data); })
       .catch(() => { toast.error('정보를 불러올 수 없습니다.'); })
       .finally(() => setLoading(false));
+
+    getRequestsApi()
+      .then((res) => {
+        if (res.success) setMakeupRequests(res.data.requests || res.data || []);
+      })
+      .catch(() => { /* silently fail */ });
   }, [isDevMode, user]);
 
   if (loading) {
@@ -171,6 +190,52 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
       )}
+
+      {/* 보강 현황 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">내 보강 현황</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {makeupRequests.length === 0 ? (
+            <div className="flex flex-col items-center py-6 text-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                <CalendarCheck size={18} className="text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">보강 신청 내역이 없습니다.</p>
+              <p className="mt-1 text-xs text-muted-foreground">결석이 있으면 보강을 신청해보세요.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {makeupRequests.map((req) => {
+                const statusConfig = MAKEUP_STATUS_CONFIG[req.status] || MAKEUP_STATUS_CONFIG.PENDING;
+                return (
+                  <div key={req.id} className="rounded-lg border border-border p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{req.originalAttendance?.className || '수업'}</p>
+                        {req.slot && (
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {req.slot.slotDate.split('T')[0]} {req.slot.startTime}~{req.slot.endTime}
+                          </p>
+                        )}
+                        {req.originalAttendance?.date && (
+                          <p className="text-xs text-muted-foreground">
+                            결석일: {String(req.originalAttendance.date).split('T')[0]}
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant="outline" className={statusConfig.className}>
+                        {statusConfig.label}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

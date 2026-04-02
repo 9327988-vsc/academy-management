@@ -25,6 +25,8 @@ model User {
   studentProfile Student?
   parentProfile  Parent?
 
+  notificationPreferences NotificationPreference[]
+
   @@index([email])
   @@index([role])
 }
@@ -63,6 +65,7 @@ model Teacher {
   consultations    Consultation[]
   teacherSchedules TeacherSchedule[]
   salaryRecords    SalaryRecord[]
+  makeupSlots      MakeupSlot[]
 
   @@index([userId])
 }
@@ -90,12 +93,13 @@ model Student {
   updatedAt        DateTime      @updatedAt
   deletedAt        DateTime?
 
-  enrollments   Enrollment[]
-  attendances   Attendance[]
-  payments      Payment[]
-  consultations Consultation[]
-  homeworks     Homework[]
-  grades        Grade[]
+  enrollments    Enrollment[]
+  attendances    Attendance[]
+  payments       Payment[]
+  consultations  Consultation[]
+  homeworks      Homework[]
+  grades         Grade[]
+  makeupRequests MakeupRequest[]
 
   @@index([parentId])
   @@index([phone])
@@ -153,6 +157,7 @@ model Class {
   attendances   Attendance[]
   schedules     ClassSchedule[]
   homeworks     ClassHomework[]
+  makeupSlots   MakeupSlot[]
 
   @@index([teacherId])
   @@index([status])
@@ -213,6 +218,8 @@ model Attendance {
   recordedBy   String?
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+
+  makeupRequests MakeupRequest[]
 
   @@unique([studentId, classId, date])
   @@index([studentId])
@@ -453,6 +460,37 @@ enum SalaryStatus {
   CANCELLED
 }
 
+enum MakeupSlotStatus {
+  AVAILABLE
+  FULL
+  CLOSED
+}
+
+enum MakeupRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationChannel {
+  SMS
+  KAKAO
+  PUSH
+  EMAIL
+}
+
+enum NotificationTemplateType {
+  SESSION_SUMMARY
+  ABSENT_NOTICE
+  MAKEUP_REMINDER
+  MAKEUP_CONFIRMED
+  MAKEUP_REJECTED
+  WEEKLY_REPORT
+  GENERAL
+}
+
 // ============================================
 // 학원 설정
 // ============================================
@@ -465,4 +503,97 @@ model AcademySettings {
   businessNumber String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+// ============================================
+// 보강 가능 시간
+// ============================================
+model MakeupSlot {
+  id           Int              @id @default(autoincrement())
+  teacherId    Int
+  teacher      Teacher          @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classId      Int?
+  class        Class?           @relation(fields: [classId], references: [id], onDelete: SetNull)
+  slotDate     DateTime         @db.Date
+  startTime    String
+  endTime      String
+  maxStudents  Int              @default(3)
+  currentCount Int              @default(0)
+  status       MakeupSlotStatus @default(AVAILABLE)
+  isRecurring  Boolean          @default(false)
+  recurringDay String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  requests MakeupRequest[]
+
+  @@index([teacherId])
+  @@index([classId])
+  @@index([slotDate])
+  @@index([status])
+  @@index([teacherId, slotDate, status])
+}
+
+// ============================================
+// 보강 신청
+// ============================================
+model MakeupRequest {
+  id                   Int                 @id @default(autoincrement())
+  studentId            Int
+  student              Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  originalAttendanceId Int
+  originalAttendance   Attendance          @relation(fields: [originalAttendanceId], references: [id], onDelete: Restrict)
+  slotId               Int
+  slot                 MakeupSlot          @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  status               MakeupRequestStatus @default(PENDING)
+  studentNote          String?             @db.Text
+  teacherNote          String?             @db.Text
+  requestedAt          DateTime            @default(now())
+  approvedAt           DateTime?
+  completedAt          DateTime?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@unique([studentId, originalAttendanceId])
+  @@index([studentId])
+  @@index([slotId])
+  @@index([status])
+  @@index([originalAttendanceId])
+}
+
+// ============================================
+// 알림 템플릿
+// ============================================
+model NotificationTemplate {
+  id           Int                      @id @default(autoincrement())
+  type         NotificationTemplateType
+  channel      NotificationChannel
+  name         String
+  templateCode String?
+  content      String                   @db.Text
+  variables    Json?
+  isActive     Boolean                  @default(true)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@index([type, channel])
+  @@index([isActive])
+}
+
+// ============================================
+// 알림 수신 설정
+// ============================================
+model NotificationPreference {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationType String
+  channelSms       Boolean  @default(true)
+  channelKakao     Boolean  @default(true)
+  channelPush      Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, notificationType])
+  @@index([userId])
 }

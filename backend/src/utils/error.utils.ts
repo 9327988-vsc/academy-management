@@ -12,7 +12,11 @@ export class AppError extends Error {
 }
 
 export function handleError(res: Response, error: unknown) {
-  console.error('❌ Error:', error);
+  if (process.env.NODE_ENV === 'development') {
+    console.error('❌ Error:', error);
+  } else {
+    console.error('❌ Error:', error instanceof Error ? error.message : 'Unknown error');
+  }
 
   if (error instanceof AppError) {
     return res.status(error.statusCode).json({
@@ -21,16 +25,18 @@ export function handleError(res: Response, error: unknown) {
     });
   }
 
+  const isDev = process.env.NODE_ENV === 'development';
+
   if (error instanceof Error) {
     return res.status(500).json({
       success: false,
-      error: error.message,
+      error: isDev ? error.message : '서버 내부 오류가 발생했습니다.',
     });
   }
 
   return res.status(500).json({
     success: false,
-    error: '알 수 없는 오류가 발생했습니다',
+    error: '알 수 없는 오류가 발생했습니다.',
   });
 }
 

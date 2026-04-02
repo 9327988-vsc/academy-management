@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getDashboardStatsApi } from '@/api/dashboard.api';
+import { getPendingRequestsApi, updateRequestStatusApi } from '@/api/makeup.api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { Calendar, Users, BookOpen, Clock, AlertCircle, ArrowRight } from 'lucide-react';
+import { Calendar, Users, BookOpen, Clock, AlertCircle, ArrowRight, CalendarCheck } from 'lucide-react';
 
 interface DashboardData {
   todayClasses: number;
@@ -17,7 +19,7 @@ interface DashboardData {
     schedule?: string;
     currentStudents?: number;
   }[];
-  recentAttendance: any[];
+  recentAttendance: { date: string; className: string; status: string }[];
 }
 
 const STAT_CONFIG = [
@@ -43,16 +45,53 @@ function DashboardSkeleton() {
   );
 }
 
+interface PendingMakeupRequest {
+  id: string;
+  studentName: string;
+  originalDate: string;
+  originalClassName: string;
+  requestedSlot: {
+    id: string;
+    slotDate: string;
+    startTime: string;
+    endTime: string;
+  };
+  studentNote?: string;
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pendingRequests, setPendingRequests] = useState<PendingMakeupRequest[]>([]);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
     getDashboardStatsApi()
       .then((res) => { if (res.success) setStats(res.data); })
       .catch(() => { toast.error('대시보드 데이터를 불러올 수 없습니다.'); })
       .finally(() => setLoading(false));
+
+    getPendingRequestsApi({ limit: 5 })
+      .then((res) => {
+        if (res.success) setPendingRequests(res.data.requests || res.data || []);
+      })
+      .catch(() => { /* silently fail for makeup section */ });
   }, []);
+
+  const handleMakeupAction = async (requestId: string, action: 'APPROVE' | 'REJECT') => {
+    setProcessingId(requestId);
+    try {
+      const res = await updateRequestStatusApi(requestId, { action });
+      if (res.success) {
+        toast.success(action === 'APPROVE' ? '승인되었습니다.' : '거절되었습니다.');
+        setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+      }
+    } catch {
+      toast.error('처리에 실패했습니다.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   if (loading) return <DashboardSkeleton />;
 
@@ -146,6 +185,73 @@ export default function DashboardPage() {
                   <Button asChild size="sm" className="opacity-80 transition-opacity group-hover:opacity-100">
                     <Link to={`/classes/${cls.id}`}>상세보기</Link>
                   </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 보강 관리 섹션 */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">보강 관리</CardTitle>
+              <CardDescription className="mt-1">
+                {pendingRequests.length > 0
+                  ? `대기 중인 보강 신청 ${pendingRequests.length}건`
+                  : '대기 중인 보강 신청이 없습니다'}
+              </CardDescription>
+            </div>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/makeup/calendar" className="gap-1">
+                보강 관리로 이동 <ArrowRight size={14} />
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {pendingRequests.length === 0 ? (
+            <div className="flex flex-col items-center py-6 text-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                <CalendarCheck size={18} className="text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">대기 중인 보강 신청이 없습니다.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {pendingRequests.map((req) => (
+                <div key={req.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{req.studentName}</p>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">{req.originalClassName}</Badge>
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      결석: {req.originalDate} / 신청: {req.requestedSlot.slotDate.split('T')[0]}
+                    </p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => handleMakeupAction(req.id, 'APPROVE')}
+                      disabled={processingId === req.id}
+                    >
+                      승인
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-xs text-destructive"
+                      onClick={() => handleMakeupAction(req.id, 'REJECT')}
+                      disabled={processingId === req.id}
+                    >
+                      거절
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

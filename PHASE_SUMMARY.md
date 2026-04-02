@@ -403,3 +403,239 @@ https://xxx.vercel.app      https://xxx.railway.app   내부 연결
 ### 미해결 이슈
 
 - 없음
+
+---
+
+# 🔄 상용 고도화 사이클 (v2.0)
+
+> MVP Phase 1~9 완료 후, 상용 버전으로 고도화하는 새로운 사이클
+
+---
+
+## v2-Phase 1 완료 — 기획 (상용 고도화)
+
+- **완료 일시:** 2026-04-02
+- **담당 에이전트:** Office Hours Agent
+- **TASK_SCALE:** large
+
+### 주요 결정사항
+
+1. **상용 PRD vs MVP PRD 비교 분석 완료**
+2. **실제 코드베이스 재평가:** MVP PRD보다 훨씬 앞서있음 확인
+   - 멀티롤 인증(ADMIN/TEACHER/PARENT/STUDENT) 이미 구현
+   - 19개 DB 테이블 (Payment, Grade, Consultation 등 포함)
+   - Admin/Parent/Student 포털 기본 구현 완료
+   - TypeScript, Zustand, TanStack Query 이미 사용 중
+3. **실제 갭 14개 기능 식별**
+4. **3-Phase 우선순위 확정:**
+   - Phase 1: 보강 시스템 + 카카오 알림톡 (3~4주)
+   - Phase 2: AI 학습 지원 — Claude Vision (4~5주)
+   - Phase 3: 운영 안정화 — FCM, CI/CD, Sentry (2~3주)
+
+### 미해결 이슈
+
+- 없음
+
+---
+
+## v2-Phase 2 완료 — 설계 (상용 고도화)
+
+- **완료 일시:** 2026-04-02
+- **담당 에이전트:** Engineering Manager Agent
+
+### 주요 결정사항
+
+1. **기술 스택 확정:** 기존 유지 + Claude API, Kakao, FCM, S3 추가
+2. **아키텍처:** 기존 3-tier 확장 (신규 모듈 5개: Makeup, Kakao, AI, Analytics, Scheduler)
+3. **신규 DB 테이블 4개:** MakeupSlot, MakeupRequest, NotificationTemplate, NotificationPreference
+4. **기존 Notification 테이블 확장:** channel, templateId, scheduledAt 추가
+5. **Phase 1 API 14개 엔드포인트 설계:** 보강 10개 + 알림 4개
+6. **엣지케이스 정의:** 보강 슬롯 풀, 중복 신청, 카카오 폴백 등
+
+### Director 게이트
+
+- 이전 단계 산출물: 확인됨
+- 진입 승인: **Y** (2026-04-02)
+
+### 다음 단계 진입 조건
+
+- [x] v2-Phase 3 디자인: `/ui-design`(FE) + `/schema-design`(BE) 병렬 완료
+
+### 미해결 이슈
+
+- 없음
+
+---
+
+## v2-Phase 3 완료 — 디자인 (FE/BE 병렬)
+
+- **완료 일시:** 2026-04-02
+- **담당 에이전트:** UI Design Agent (FE) + Schema Design Agent (BE)
+
+### 산출물
+
+| 파일 | 설명 |
+|------|------|
+| `docs/DESIGN_V2_MAKEUP.md` | 보강 UI 설계 — 페이지 4개, 컴포넌트 6그룹, 와이어프레임 8개 |
+| `docs/SCHEMA_V2_MAKEUP.md` | 보강 스키마 — 테이블 4개, enum 4개, API 13개 상세 명세 |
+
+### 미해결 이슈
+
+- 없음
+
+---
+
+## v2-Phase 4 완료 — 코딩 (FE/BE 병렬)
+
+- **완료 일시:** 2026-04-02
+- **담당 에이전트:** FE Dev Agent + BE Dev Agent
+
+### BE 구현
+
+- Prisma 스키마 확장: enum 4개 + 모델 4개 + 기존 모델 관계 추가
+- 서비스 9개 함수 (트랜잭션, 레이스 컨디션 방지)
+- 컨트롤러 8개 핸들러 + 라우트 9개 엔드포인트
+- 입력 검증 (express-validator) + RBAC 적용
+
+### FE 구현
+
+- 신규 페이지 3개: MakeupSlotManagePage, MakeupRequestPage, MakeupCalendarPage
+- API 클라이언트 9개 함수
+- 기존 대시보드 3개에 보강 섹션 추가
+- Header에 보강 관리 네비 추가
+- 라우트 3개 추가
+
+### 미해결 이슈
+
+- 없음
+
+---
+
+## v2-Phase 5 완료 — 검수 (FE/BE 병렬)
+
+- **완료 일시:** 2026-04-02
+- **담당 에이전트:** FE Review Agent + BE Review Agent
+
+### BE 검수
+
+- 심각 5건 + 보안 3건 → **모두 수정 완료**
+- PrismaClient 싱글톤, 레이스컨디션 트랜잭션, authorize 누락 등
+- 경고 7건 (Phase 2에서 개선)
+
+### FE 검수
+
+- 심각 6건 → **모두 수정 완료**
+- `any` 타입 제거, aria-label 추가, label 연결 등
+- 경고 5건 (Phase 2에서 개선)
+
+### 산출물
+
+| 파일 | 설명 |
+|------|------|
+| `docs/BE_REVIEW_V2.md` | BE 검수 보고서 |
+| `docs/FE_REVIEW_V2.md` | FE 검수 보고서 |
+
+### 미해결 이슈
+
+- 없음
+
+---
+
+## v2-Phase 7 완료 — 통합
+
+- **완료 일시:** 2026-04-02
+- **담당 에이전트:** Integration Agent
+
+### 통합 결과
+
+- 연동 지점 14개 검사 → 불일치 4건 발견, **모두 수정 완료**
+- FE 타입을 BE 응답 구조(nested)에 맞게 재정의
+- 필수 쿼리 파라미터 누락 수정
+- 필드 접근 경로 불일치 수정
+
+### Director 게이트
+
+- 연동 지점 전체 통과: 14/14
+- 진입 승인: **Y**
+
+### 산출물
+
+| 파일 | 설명 |
+|------|------|
+| `docs/INTEGRATION_REPORT_V2.md` | 통합 검증 보고서 |
+
+### 미해결 이슈
+
+- MakeupRequestPage가 `?studentId=X&attendanceId=Y` 쿼리 파라미터 필요
+
+---
+
+## v2-Phase 8 완료 — 보안 검증
+
+- **완료 일시:** 2026-04-02
+- **담당 에이전트:** Security Guard Agent
+
+### 보안 검사 결과
+
+- 검사: 39개 / 통과: 33개 / N/A: 2개 / 블로킹: **0개** (1건 수정 완료)
+- `error.utils.ts` Prisma 에러 노출 → 제네릭 메시지로 수정
+- 권고 3건 (배포 후 개선)
+
+### 배포 승인
+
+- A~D 영역 블로킹 이슈: **0개 → PASS**
+- E~G 영역 블로킹 이슈: **0개 → PASS**
+
+### 산출물
+
+| 파일 | 설명 |
+|------|------|
+| `docs/SECURITY_REPORT_V2.md` | 보안 39개 항목 검사 결과 |
+
+### 다음 단계
+
+- [x] v2-Phase 9: 배포 (`/release`)
+
+### 미해결 이슈
+
+- 없음
+
+---
+
+## v2-Phase 9 완료 — 배포 준비
+
+- **완료 일시:** 2026-04-02
+- **담당 에이전트:** Release Agent
+
+### 배포 준비 완료 항목
+
+- [x] CHANGELOG.md 작성 (v2.1.0)
+- [x] DEPLOY_LOG_V2.md 작성 (배포 절차 + 롤백 플랜)
+- [x] DB 마이그레이션 스크립트 준비 (Prisma auto)
+- [x] 롤백 SQL 준비
+- [x] 환경변수 추가 목록 정리 (KAKAO_API_KEY, KAKAO_SENDER_KEY)
+- [x] 헬스체크 항목 정의
+- [x] 불필요한 파일 정리
+
+### 산출물
+
+| 파일 | 설명 |
+|------|------|
+| `CHANGELOG.md` | 버전별 변경 내역 |
+| `DEPLOY_LOG_V2.md` | 배포 절차, 환경변수, 롤백 플랜 |
+
+### 배포 절차
+
+1. `git add` + `git commit` + `git push origin main`
+2. Railway 자동 배포 (BE + DB 마이그레이션)
+3. Vercel 자동 배포 (FE)
+4. 헬스체크 7개 항목 확인
+
+### 다음 단계
+
+- [ ] 실제 배포 실행 (사용자 수동)
+- [ ] v2-Phase 10: 회고 (`/retro`)
+
+### 미해결 이슈
+
+- 없음

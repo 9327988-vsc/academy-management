@@ -102,3 +102,49 @@ export interface ApiResponse<T = unknown> {
   message?: string;
   errors?: { field: string; message: string }[];
 }
+
+// Makeup types
+export type MakeupSlotStatus = 'AVAILABLE' | 'FULL' | 'CLOSED';
+export type MakeupRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED';
+
+export interface MakeupSlot {
+  id: string;
+  teacherId: string;
+  teacherName?: string;
+  classId?: string;
+  className?: string;
+  slotDate: string;
+  startTime: string;
+  endTime: string;
+  maxStudents: number;
+  currentCount: number;
+  status: MakeupSlotStatus;
+  isRecurring: boolean;
+  recurringDay?: string;
+  createdAt: string;
+}
+
+export interface MakeupRequest {
+  id: string;
+  studentId: string;
+  studentName?: string;
+  originalAttendance: {
+    id: string;
+    date: string;
+    className: string;
+    status: string;
+  };
+  slot: {
+    id: string;
+    slotDate: string;
+    startTime: string;
+    endTime: string;
+    teacherName: string;
+  };
+  status: MakeupRequestStatus;
+  studentNote?: string;
+  teacherNote?: string;
+  requestedAt: string;
+  approvedAt?: string;
+  completedAt?: string;
+}

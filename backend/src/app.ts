@@ -18,6 +18,7 @@ import settingsRoutes from './routes/settings.routes';
 import announcementRoutes from './routes/announcement.routes';
 import systemLogRoutes from './routes/systemLog.routes';
 import paymentRoutes from './routes/payment.routes';
+import makeupRoutes from './routes/makeup.routes';
 
 dotenv.config();
 
@@ -64,6 +65,7 @@ app.use('/api/admin/settings', settingsRoutes);
 app.use('/api/admin/announcements', announcementRoutes);
 app.use('/api/admin/logs', systemLogRoutes);
 app.use('/api/admin/payments', paymentRoutes);
+app.use('/api/makeup', makeupRoutes);
 
 // 학부모 삭제 (별도 경로)
 import { authenticate } from './middleware/auth.middleware';
